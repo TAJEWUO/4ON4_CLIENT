@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { X, ArrowLeft } from "lucide-react"
+import { useState, useEffect } from "react";
+import { X, ArrowLeft } from "lucide-react";
 
 const languageOptions = [
   "English",
@@ -11,7 +11,7 @@ const languageOptions = [
   "Spanish",
   "Korean",
   "Portuguese",
-]
+];
 
 export default function DriverProfileModal({
   open,
@@ -19,66 +19,68 @@ export default function DriverProfileModal({
   onSubmit,
   driver,
 }: {
-  open: boolean
-  onClose: () => void
-  onSubmit: (data: any) => void
-  driver?: any
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: any) => void;
+  driver?: any;
 }) {
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [phone, setPhone] = useState("")
-  const [citizenship, setCitizenship] = useState<"Kenyan" | "Foreigner" | "">("")
-  const [level, setLevel] = useState<"BRONZE" | "SILVER" | "GOLD" | "">("")
-  const [license, setLicense] = useState("")
-  const [idNumber, setIdNumber] = useState("")
-  const [languages, setLanguages] = useState<string[]>([])
-  const [image, setImage] = useState<File | null>(null)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [citizenship, setCitizenship] = useState<"Kenyan" | "Foreigner" | "">(
+    ""
+  );
+  const [level, setLevel] = useState<"BRONZE" | "SILVER" | "GOLD" | "">("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [nationalId, setNationalId] = useState("");
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // Populate form when editing
+  // Load driver profile into modal
   useEffect(() => {
     if (driver) {
-      setFirstName(driver.firstName || "")
-      setLastName(driver.lastName || "")
-      setPhone(driver.phone || "")
-      setCitizenship(driver.citizenship || "")
-      setLevel(driver.level || "")
-      setLicense(driver.license || "")
-      setIdNumber(driver.idNumber || "")
-      setLanguages(driver.languages || [])
-      setImageUrl(driver.image || null)
+      setFirstName(driver.firstName || "");
+      setLastName(driver.lastName || "");
+      setCitizenship(driver.citizenship || "");
+      setLevel(driver.level || "");
+      setLicenseNumber(driver.licenseNumber || "");
+      setNationalId(driver.nationalId || "");
+      setLanguages(driver.languages || []);
+      setImageUrl(
+        driver.profileImage
+          ? `http://192.168.0.104:3002/${driver.profileImage}`
+          : null
+      );
     }
-  }, [driver])
+  }, [driver]);
 
-  if (!open) return null
+  if (!open) return null;
 
   const handleLanguageToggle = (lang: string) => {
     if (languages.includes(lang)) {
-      setLanguages(languages.filter((l) => l !== lang))
+      setLanguages(languages.filter((l) => l !== lang));
     } else {
-      setLanguages([...languages, lang])
+      setLanguages([...languages, lang]);
     }
-  }
+  };
 
   const handleSubmit = () => {
     onSubmit({
       firstName,
       lastName,
-      phone,
       citizenship,
       level,
-      license,
-      idNumber,
+      licenseNumber,
+      nationalId,
       languages,
-      image, // file object
-    })
-    onClose()
-  }
+      profileImage, // ✔ correct key for backend
+    });
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 overflow-auto">
       <div className="bg-white w-full max-w-lg rounded-lg shadow-xl overflow-hidden">
-
         {/* HEADER */}
         <div className="flex justify-between items-center px-4 py-3 border-b border-gray-300">
           <button onClick={onClose} className="flex items-center gap-1 text-black">
@@ -92,7 +94,6 @@ export default function DriverProfileModal({
 
         {/* CONTENT */}
         <div className="p-5 space-y-4">
-
           {/* PROFILE IMAGE */}
           <div className="flex justify-center mb-4">
             <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden">
@@ -110,16 +111,16 @@ export default function DriverProfileModal({
             type="file"
             accept="image/*"
             onChange={(e) => {
-              const f = e.target.files?.[0]
+              const f = e.target.files?.[0];
               if (f) {
-                setImage(f)
-                setImageUrl(URL.createObjectURL(f))
+                setProfileImage(f);
+                setImageUrl(URL.createObjectURL(f));
               }
             }}
             className="w-full text-sm"
           />
 
-          {/* TWO COLUMN NAME */}
+          {/* NAME */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm text-black">First Name</label>
@@ -138,17 +139,6 @@ export default function DriverProfileModal({
                 onChange={(e) => setLastName(e.target.value)}
               />
             </div>
-          </div>
-
-          {/* PHONE */}
-          <div>
-            <label className="text-sm text-black">Phone Number</label>
-            <input
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+2547XXXXXXX"
-            />
           </div>
 
           {/* CITIZENSHIP */}
@@ -185,18 +175,18 @@ export default function DriverProfileModal({
             <label className="text-sm text-black">License Number</label>
             <input
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              value={license}
-              onChange={(e) => setLicense(e.target.value)}
+              value={licenseNumber}
+              onChange={(e) => setLicenseNumber(e.target.value)}
             />
           </div>
 
-          {/* ID OR PASSPORT */}
+          {/* NATIONAL ID */}
           <div>
             <label className="text-sm text-black">National ID / Passport</label>
             <input
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              value={idNumber}
-              onChange={(e) => setIdNumber(e.target.value)}
+              value={nationalId}
+              onChange={(e) => setNationalId(e.target.value)}
             />
           </div>
 
@@ -240,5 +230,5 @@ export default function DriverProfileModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

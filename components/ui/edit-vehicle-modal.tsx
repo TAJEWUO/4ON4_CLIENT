@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 
 type WindowType = "glass" | "canvas";
 
-type AddVehicleModalProps = {
+type EditVehicleModalProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (vehicle: {
+  vehicle: any | null;
+  onSubmit: (data: {
     plateNumber: string;
     capacity: number;
     windowType: WindowType;
@@ -16,40 +17,39 @@ type AddVehicleModalProps = {
   }) => void;
 };
 
-export default function AddVehicleModal({
+export default function EditVehicleModal({
   open,
   onClose,
+  vehicle,
   onSubmit,
-}: AddVehicleModalProps) {
-  const [plate, setPlate] = useState("");
+}: EditVehicleModalProps) {
+  const [plateNumber, setPlateNumber] = useState("");
   const [capacity, setCapacity] = useState<number | "">("");
   const [windowType, setWindowType] = useState<WindowType | "">("");
   const [model, setModel] = useState("");
   const [images, setImages] = useState<File[]>([]);
 
-  // Reset form whenever modal opens
   useEffect(() => {
-    if (open) {
-      setPlate("");
-      setCapacity("");
-      setWindowType("");
-      setModel("");
+    if (vehicle && open) {
+      setPlateNumber(vehicle.plateNumber || "");
+      setCapacity(vehicle.capacity || "");
+      setWindowType((vehicle.windowType as WindowType) || "");
+      setModel(vehicle.model || "");
       setImages([]);
     }
-  }, [open]);
+  }, [vehicle, open]);
 
-  if (!open) return null;
+  if (!open || !vehicle) return null;
 
   const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-
     const fileArray = Array.from(files).slice(0, 3);
     setImages(fileArray);
   };
 
-  const handleSubmit = () => {
-    if (!plate.trim()) {
+  const handleSave = () => {
+    if (!plateNumber.trim()) {
       alert("Plate number required");
       return;
     }
@@ -63,46 +63,36 @@ export default function AddVehicleModal({
     }
 
     onSubmit({
-      plateNumber: plate.trim(),
+      plateNumber: plateNumber.trim(),
       capacity: Number(capacity),
       windowType: windowType as WindowType,
       model: model.trim() || undefined,
       images,
     });
-
     onClose();
   };
-
-  const capacityOptions = Array.from({ length: 11 }, (_, i) => i + 4);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-md rounded-md shadow-lg p-5">
-        <h2 className="text-lg font-semibold text-black mb-4">Add New Vehicle</h2>
+        <h2 className="text-lg font-semibold text-black mb-4">Edit Vehicle</h2>
 
         {/* PLATE */}
         <label className="block text-sm text-black mb-1">Car Plate Number *</label>
         <input
           className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-sm"
-          value={plate}
-          onChange={(e) => setPlate(e.target.value.toUpperCase())}
-          placeholder="e.g. KDA 112A"
+          value={plateNumber}
+          onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
         />
 
         {/* CAPACITY */}
         <label className="block text-sm text-black mb-1">Capacity *</label>
-        <select
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-sm bg-white"
-          value={capacity === "" ? "" : String(capacity)}
+        <input
+          type="number"
+          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-sm"
+          value={capacity}
           onChange={(e) => setCapacity(Number(e.target.value))}
-        >
-          <option value="">Select capacity</option>
-          {capacityOptions.map((c) => (
-            <option key={c} value={c}>
-              {c} seats
-            </option>
-          ))}
-        </select>
+        />
 
         {/* WINDOW TYPE */}
         <label className="block text-sm text-black mb-1">Window Type *</label>
@@ -116,7 +106,6 @@ export default function AddVehicleModal({
           >
             Glass
           </button>
-
           <button
             type="button"
             onClick={() => setWindowType("canvas")}
@@ -134,31 +123,25 @@ export default function AddVehicleModal({
           className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-sm"
           value={model}
           onChange={(e) => setModel(e.target.value)}
-          placeholder="e.g. Toyota Hiace"
         />
 
         {/* IMAGES */}
         <label className="block text-sm text-black mb-1">
-          Vehicle Images (max 3)
+          Replace Vehicle Images (max 3) (optional)
         </label>
         <input
           type="file"
           accept="image/*"
           multiple
-          className="w-full text-sm"
+          className="w-full text-sm mb-2"
           onChange={handleFilesChange}
         />
 
-        {images.length > 0 && (
-          <ul className="mt-2 text-xs text-gray-700 list-disc list-inside">
-            {images.map((file, i) => (
-              <li key={i}>{file.name}</li>
-            ))}
-          </ul>
-        )}
+        <p className="text-xs text-gray-500 mb-4">
+          If you upload new images, they will replace the old ones.
+        </p>
 
-        {/* BUTTONS */}
-        <div className="flex justify-between mt-6">
+        <div className="flex justify-between mt-4">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm border border-gray-400 rounded-md text-black hover:bg-gray-100"
@@ -167,10 +150,10 @@ export default function AddVehicleModal({
           </button>
 
           <button
-            onClick={handleSubmit}
+            onClick={handleSave}
             className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800"
           >
-            Save Vehicle
+            Save Changes
           </button>
         </div>
       </div>

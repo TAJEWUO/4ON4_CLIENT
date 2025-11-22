@@ -1,11 +1,14 @@
 const BASE_URL = "http://192.168.0.104:3002";
 
-
+/* ===========================
+   AUTH
+=========================== */
 export async function apiRegister(data: any) {
   const res = await fetch(`${BASE_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+    mode: "cors",
   });
   return res.json();
 }
@@ -15,33 +18,8 @@ export async function apiLogin(identifier: string, password: string) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier, password }),
+    mode: "cors",
   });
-  return res.json();
-}
-
-export async function apiGetProfile(userId: string) {
-  const res = await fetch(`${BASE_URL}/api/user/profile/${userId}`);
-  return res.json();
-}
-
-export async function apiUpdateProfile(userId: string, data: FormData) {
-  const res = await fetch(`${BASE_URL}/api/user/profile/${userId}`, {
-    method: "PUT",
-    body: data,
-  });
-  return res.json();
-}
-
-export async function apiUploadVehicle(data: FormData) {
-  const res = await fetch(`${BASE_URL}/api/vehicles/upload`, {
-    method: "POST",
-    body: data,
-  });
-  return res.json();
-}
-
-export async function apiGetVehicles(userId: string) {
-  const res = await fetch(`${BASE_URL}/api/vehicles/${userId}`);
   return res.json();
 }
 
@@ -50,7 +28,64 @@ export async function apiResetPassword(identifier: string, newPassword: string) 
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier, newPassword }),
+    mode: "cors",
   });
   return res.json();
 }
 
+/* ===========================
+   PROFILE
+=========================== */
+export async function apiGetProfile(userId: string) {
+  const res = await fetch(`${BASE_URL}/api/user/profile/${userId}`, {
+    method: "GET",
+    mode: "cors",
+  });
+  return res.json();
+}
+
+export async function apiUpdateProfile(userId: string, data: FormData) {
+  const res = await fetch(`${BASE_URL}/api/user/profile/${userId}`, {
+    method: "PUT",
+    body: data,
+    mode: "cors",
+  });
+  return res.json();
+}
+
+/* ===========================
+   VEHICLES
+=========================== */
+export async function apiUploadVehicle(formData: FormData) {
+  const res = await fetch(`${BASE_URL}/api/vehicles/upload`, {
+    method: "POST",
+    body: formData,
+    mode: "cors",
+  });
+  return res.json();
+}
+
+export async function apiGetVehicles(userId: string) {
+  const res = await fetch(`${BASE_URL}/api/vehicles/${userId}`, {
+    method: "GET",
+    mode: "cors",
+  });
+  return res.json();
+}
+
+export async function apiDeleteVehicle(vehicleId: string) {
+  const res = await fetch(`${BASE_URL}/api/vehicles/${vehicleId}`, {
+    method: "DELETE",
+    mode: "cors",
+  });
+  return res.json();
+}
+
+export async function apiUpdateVehicle(vehicleId: string, data: FormData) {
+  const res = await fetch(`${BASE_URL}/api/vehicles/${vehicleId}`, {
+    method: "PUT",
+    body: data,
+    mode: "cors",
+  });
+  return res.json();
+}

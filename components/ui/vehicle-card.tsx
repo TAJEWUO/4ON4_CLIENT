@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ChevronLeft, ChevronRight, Users, PanelsTopLeft } from "lucide-react"
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Users, PanelsTopLeft } from "lucide-react";
 
 export default function VehicleCard({
   plate,
@@ -10,23 +10,27 @@ export default function VehicleCard({
   windowType,
   images,
   onClick,
+  onEdit,
+  onDelete,
 }: {
-  plate: string
-  model?: string
-  capacity: number
-  windowType: "glass" | "canvas"
-  images: string[]
-  onClick?: () => void
+  plate: string;
+  model?: string;
+  capacity: number;
+  windowType: "glass" | "canvas";
+  images: string[];
+  onClick?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(0);
 
   const next = () => {
-    setIndex((prev) => (prev + 1) % images.length)
-  }
+    setIndex((prev) => (prev + 1) % images.length);
+  };
 
   const prev = () => {
-    setIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-  }
+    setIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
 
   return (
     <div
@@ -35,7 +39,6 @@ export default function VehicleCard({
     >
       {/* IMAGE AREA */}
       <div className="relative w-full h-56 bg-gray-100">
-
         {/* Number plate badge */}
         <div className="absolute top-2 left-2 bg-white px-3 py-1 rounded-md font-bold text-black shadow">
           {plate}
@@ -52,8 +55,8 @@ export default function VehicleCard({
           <>
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                prev()
+                e.stopPropagation();
+                prev();
               }}
               className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-1 rounded-full backdrop-blur"
             >
@@ -62,8 +65,8 @@ export default function VehicleCard({
 
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                next()
+                e.stopPropagation();
+                next();
               }}
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-1 rounded-full backdrop-blur"
             >
@@ -86,7 +89,7 @@ export default function VehicleCard({
       </div>
 
       {/* Divider */}
-      <div className="w-full h-px] bg-gray-300" />
+      <div className="w-full h-px bg-gray-300" />
 
       {/* Details */}
       <div className="p-4">
@@ -107,7 +110,30 @@ export default function VehicleCard({
             <span>{windowType}</span>
           </div>
         </div>
+
+        {/* Edit / Delete buttons */}
+        <div className="flex justify-between mt-4">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit && onEdit();
+            }}
+            className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
+          >
+            Edit
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete && onDelete();
+            }}
+            className="px-3 py-1 text-sm bg-red-600 text-white rounded"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
-  )
+  );
 }
