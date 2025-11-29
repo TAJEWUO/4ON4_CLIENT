@@ -1,23 +1,22 @@
-"use client"
+"use client";
 
-import { Plus } from "lucide-react"
+import { Plus } from "lucide-react";
 
 export default function DriverPreview({
   driver,
   onClick,
 }: {
   driver?: {
-    firstName: string
-    lastName: string
-    image?: string
-  }
-  onClick: () => void
+    firstName: string;
+    lastName: string;
+    image?: string; // Stored in DB as filename only
+  };
+  onClick: () => void;
 }) {
   // If NO DRIVER exists — show blank add profile block
   if (!driver) {
     return (
       <div className="w-full flex flex-col items-center py-6">
-        
         {/* Empty circle with + button */}
         <button
           onClick={onClick}
@@ -34,7 +33,7 @@ export default function DriverPreview({
           Add Driver Profile
         </button>
       </div>
-    )
+    );
   }
 
   // DRIVER EXISTS — show profile
@@ -43,11 +42,15 @@ export default function DriverPreview({
       onClick={onClick}
       className="w-full bg-white border border-gray-300 rounded-lg shadow p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition"
     >
-      
       {/* Driver Image */}
       <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
         {driver.image ? (
-          <img src={driver.image} className="w-full h-full object-cover" />
+          <img
+            src={`http://192.168.0.101:3002/uploads/drivers/
+${driver.image}`}
+            className="w-full h-full object-cover"
+            alt="Driver"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
             No Img
@@ -63,5 +66,5 @@ export default function DriverPreview({
         <p className="text-gray-500 text-xs">Driver Profile</p>
       </div>
     </div>
-  )
+  );
 }

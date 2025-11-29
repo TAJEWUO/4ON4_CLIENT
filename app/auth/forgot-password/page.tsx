@@ -1,0 +1,71 @@
+"use client";
+
+import { useState } from "react";
+import { postAuth } from "@/lib/auth-api";
+
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg("");
+    setLoading(true);
+
+    const { ok, data } = await postAuth("/api/auth/request-password-reset", {
+      email,
+    });
+
+    setLoading(false);
+
+    if (!ok) {
+      setMsg(data.message || "Unable to send reset link.");
+      return;
+    }
+
+    setMsg("Password reset link sent to your email.");
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="w-full max-w-md p-6 border rounded-xl shadow">
+        
+        <h1 className="text-2xl font-bold text-center mb-6">Forgot Password</h1>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          <div>
+            <label className="block mb-1 font-medium">Email Address</label>
+            <input
+              type="email"
+              className="w-full border px-3 py-2 rounded"
+              placeholder="example@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          {msg && <p className="text-blue-600 text-center text-sm">{msg}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white py-2 rounded-md"
+          >
+            {loading ? "Sending..." : "Send Reset Link"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-center text-sm">
+          Remember your password?{" "}
+          <a href="/auth/login" className="text-blue-600">
+            Login
+          </a>
+        </p>
+
+      </div>
+    </div>
+  );
+}

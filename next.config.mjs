@@ -1,11 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3002",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "192.168.0.104",
+        port: "3002",
+        pathname: "/uploads/**",
+      },
+    ],
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

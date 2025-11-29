@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import { ChevronRight } from "lucide-react"
+import { ChevronRight } from "lucide-react";
+import { buildImageUrl } from "@/lib/api";
 
 export default function DriverCard({
   name,
   image,
   onClick,
 }: {
-  name: string
-  image?: string
-  onClick: () => void
+  name: string;
+  image?: string;
+  onClick: () => void;
 }) {
   return (
     <div
@@ -19,7 +20,11 @@ export default function DriverCard({
       {/* PROFILE IMAGE */}
       <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
         {image ? (
-          <img src={image} className="w-full h-full object-cover" />
+          <img
+            src={buildImageUrl(`uploads/drivers/${image}`)}
+            className="w-full h-full object-cover"
+            alt="Driver"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
             No Img
@@ -36,5 +41,5 @@ export default function DriverCard({
       {/* ARROW */}
       <ChevronRight className="text-black" size={20} />
     </div>
-  )
+  );
 }
