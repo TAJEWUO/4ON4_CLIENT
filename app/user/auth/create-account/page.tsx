@@ -1,86 +1,86 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { postAuth } from "@/lib/auth-api";
-
-const phoneRegex = /^0(7|1)\d{8}$/;
-const pinRegex = /^\d{4}$/;
 
 export default function CreateAccountPage() {
   const router = useRouter();
   const params = useSearchParams();
 
   const email = params.get("email");
-  const token = params.get("token");
+  const otp = params.get("otp"); // From verify step
 
-  const [phoneDigits, setPhoneDigits] = useState<string[]>(Array(10).fill(""));
-  const [phoneConfirm, setPhoneConfirm] = useState<string[]>(Array(10).fill(""));
-
-  const [pinDigits, setPinDigits] = useState<string[]>(Array(4).fill(""));
-  const [pinConfirm, setPinConfirm] = useState<string[]>(Array(4).fill(""));
-
+  const [phone, setPhone] = useState("");
+  const [phoneConfirm, setPhoneConfirm] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleDigitChange = (
-    section: "phone" | "phoneConfirm" | "pin" | "pinConfirm",
-    index: number,
-    value: string
-  ) => {
-    // allow only 0–9 or empty
+  // PIN State
+  const [pin, setPin] = useState(["", "", "", ""]);
+  const pinRef = useRef<HTMLInputElement[]>([]);
+
+  // Handle PIN box typing
+  const handlePinChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
 
-    if (section === "phone") {
-      const copy = [...phoneDigits];
-      copy[index] = value;
-      setPhoneDigits(copy);
-    } else if (section === "phoneConfirm") {
-      const copy = [...phoneConfirm];
-      copy[index] = value;
-      setPhoneConfirm(copy);
-    } else if (section === "pin") {
-      const copy = [...pinDigits];
-      copy[index] = value;
-      setPinDigits(copy);
-    } else {
-      const copy = [...pinConfirm];
-      copy[index] = value;
-      setPinConfirm(copy);
+    const newPin = [...pin];
+    newPin[index] = value;
+    setPin(newPin);
+
+    if (value && index < 3) pinRef.current[index + 1]?.focus();
+  };
+
+  const handlePinKeyDown = (index: number, e: any) => {
+    if (e.key === "Backspace" && !pin[index] && index > 0) {
+      pinRef.current[index - 1]?.focus();
     }
+  };
+
+  // Normalize phone input to full Kenyan format
+  const normalizePhone = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+
+    if (digits.startsWith("07") || digits.startsWith("01")) {
+      return digits.slice(0, 10);
+    }
+
+    if (digits.startsWith("7")) {
+      return "07" + digits.slice(1, 9);
+    }
+
+    if (digits.startsWith("1")) {
+      return "01" + digits.slice(1, 9);
+    }
+
+    return digits;
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
 
-    const phone = phoneDigits.join("");
-    const confirmPhone = phoneConfirm.join("");
-    const pin = pinDigits.join("");
-    const confirmPin = pinConfirm.join("");
-
-    if (!token || !email) {
-      setMsg("Invalid or expired registration link. Please start again.");
+    if (!email || !otp) {
+      setMsg("Invalid session. Restart registration.");
       return;
     }
 
-    if (!phoneRegex.test(phone)) {
-      setMsg("Phone must start with 07 or 01 and be 10 digits.");
+    const fixedPhone = normalizePhone(phone);
+    const fixedConfirm = normalizePhone(phoneConfirm);
+
+    if (fixedPhone.length !== 10) {
+      setMsg("Enter a valid Kenyan phone number (07.. or 01..)");
       return;
     }
 
-    if (phone !== confirmPhone) {
-      setMsg("Phone numbers do not match.");
+    if (fixedPhone !== fixedConfirm) {
+      setMsg("Phone numbers do not match. Please enter correct phone number.");
       return;
     }
 
-    if (!pinRegex.test(pin)) {
-      setMsg("PIN must be exactly 4 digits.");
-      return;
-    }
-
-    if (pin !== confirmPin) {
-      setMsg("PINs do not match.");
+    const fullPin = pin.join("");
+    if (fullPin.length !== 4) {
+      setMsg("Enter your 4-digit PIN.");
       return;
     }
 
@@ -88,10 +88,10 @@ export default function CreateAccountPage() {
 
     const { ok, data } = await postAuth("/api/auth/register-complete", {
       email,
-      token,
-      phone,
-      password: pin,
-      confirmPassword: confirmPin,
+      otp,
+      phone: fixedPhone,
+      password: fullPin,
+      confirmPassword: fullPin,
     });
 
     setLoading(false);
@@ -101,100 +101,95 @@ export default function CreateAccountPage() {
       return;
     }
 
-    router.push("/user/auth/login");
+    // store userId
+    if (data.user?.id) {
+      localStorage.setItem("fouron4_user_id", data.user.id);
+    }
+
+    router.push("/user/dashboard");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-md p-6 border rounded-xl shadow space-y-6">
-        <h1 className="text-2xl font-bold text-center">
+      <div className="w-full max-w-md p-6 border rounded-xl shadow">
+        <h1 className="text-2xl font-bold text-center mb-4">
           Complete Your Account
         </h1>
 
-        <p className="text-center text-gray-600 text-sm">
-          Verified email: <strong>{email}</strong>
+        <p className="text-center text-gray-600 text-sm mb-6">
+          Email verified: <strong>{email}</strong>
         </p>
 
-        <form onSubmit={handleCreate} className="space-y-5">
+        <form onSubmit={handleCreate} className="space-y-6">
           {/* PHONE */}
           <div>
-            <p className="font-medium mb-1">Enter Phone Number</p>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="font-semibold">+254</span>
-              <div className="grid grid-cols-10 gap-1 flex-1">
-                {phoneDigits.map((d, i) => (
-                  <input
-                    key={i}
-                    maxLength={1}
-                    inputMode="numeric"
-                    className="border rounded text-center py-2"
-                    value={d}
-                    onChange={(e) =>
-                      handleDigitChange("phone", i, e.target.value)
-                    }
-                  />
-                ))}
-              </div>
-            </div>
+            <label className="block font-medium mb-1">Enter Phone Number</label>
 
-            <p className="font-medium mb-1">Confirm Phone Number</p>
             <div className="flex items-center gap-2">
-              <span className="font-semibold">+254</span>
-              <div className="grid grid-cols-10 gap-1 flex-1">
-                {phoneConfirm.map((d, i) => (
-                  <input
-                    key={i}
-                    maxLength={1}
-                    inputMode="numeric"
-                    className="border rounded text-center py-2"
-                    value={d}
-                    onChange={(e) =>
-                      handleDigitChange("phoneConfirm", i, e.target.value)
-                    }
-                  />
-                ))}
-              </div>
+              <span className="px-3 py-2 border rounded bg-gray-100">+254</span>
+
+              <input
+                type="text"
+                className="flex-1 border px-3 py-2 rounded"
+                placeholder="07xxxxxxxx or 01xxxxxxxx"
+                value={phone}
+                maxLength={10}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                required
+              />
+            </div>
+          </div>
+
+          {/* CONFIRM PHONE */}
+          <div>
+            <label className="block font-medium mb-1">Confirm Phone Number</label>
+
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-2 border rounded bg-gray-100">+254</span>
+
+              <input
+                type="text"
+                className="flex-1 border px-3 py-2 rounded"
+                placeholder="Re-enter phone number"
+                value={phoneConfirm}
+                maxLength={10}
+                onChange={(e) =>
+                  setPhoneConfirm(e.target.value.replace(/\D/g, ""))
+                }
+                required
+              />
             </div>
           </div>
 
           {/* PIN */}
           <div>
-            <p className="font-medium mb-1">Create 4-Digit PIN</p>
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              {pinDigits.map((d, i) => (
+            <label className="block font-medium mb-1">Create PIN (4 digits)</label>
+
+            <div className="flex gap-3 justify-center">
+              {pin.map((p, i) => (
                 <input
                   key={i}
+                  type="password"
                   maxLength={1}
-                  inputMode="numeric"
-                  className="border rounded text-center py-2"
-                  value={d}
-                  onChange={(e) =>
-                    handleDigitChange("pin", i, e.target.value)
-                  }
+                  value={p}
+                  ref={(el) => {
+                    if (el) {
+                      pinRef.current[i] = el; // ✅ FIXED: safe ref assignment
+                    }
+                  }}
+                  className="w-12 h-12 border text-center text-xl rounded"
+                  onChange={(e) => handlePinChange(i, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(i, e)}
                 />
               ))}
             </div>
 
-            <p className="font-medium mb-1">Confirm PIN</p>
-            <div className="grid grid-cols-4 gap-2">
-              {pinConfirm.map((d, i) => (
-                <input
-                  key={i}
-                  maxLength={1}
-                  inputMode="numeric"
-                  className="border rounded text-center py-2"
-                  value={d}
-                  onChange={(e) =>
-                    handleDigitChange("pinConfirm", i, e.target.value)
-                  }
-                />
-              ))}
-            </div>
+            <p className="text-center text-gray-500 text-xs mt-2">
+              Use this phone number and PIN to log in to your account.
+            </p>
           </div>
 
-          {msg && (
-            <p className="text-center text-red-600 text-sm">{msg}</p>
-          )}
+          {msg && <p className="text-center text-red-600 text-sm">{msg}</p>}
 
           <button
             type="submit"
