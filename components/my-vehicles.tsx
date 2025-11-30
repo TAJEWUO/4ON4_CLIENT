@@ -10,7 +10,7 @@ import {
 import VehicleCard from "./ui/vehicle-card";
 import EditVehicleModal from "./ui/edit-vehicle-modal";
 
-const BACKEND_URL = "http://192.168.0.104:3002";
+const BACKEND_URL = "https://fouron4-backend-1.onrender.com";
 
 export default function MyVehicles({
   vehicles,
@@ -22,7 +22,6 @@ export default function MyVehicles({
   const [editOpen, setEditOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
 
-  // Listen for dashboard AddVehicleModal submissions
   useEffect(() => {
     function handleAddFromDashboard(e: any) {
       if (!e.detail) return;
@@ -42,9 +41,7 @@ export default function MyVehicles({
     if (!userId) return;
 
     const res = await apiGetVehicles(userId);
-    if (res.success) {
-      setVehicles(res.vehicles);
-    }
+    if (res.success) setVehicles(res.vehicles);
   };
 
   const handleAddVehicle = async (data: any) => {
@@ -70,9 +67,7 @@ export default function MyVehicles({
       }
 
       const res = await apiUploadVehicle(form);
-      if (res.success) {
-        await refreshVehicles();
-      }
+      if (res.success) await refreshVehicles();
     } catch (err) {
       console.log("Vehicle upload failed:", err);
     } finally {
@@ -82,6 +77,7 @@ export default function MyVehicles({
 
   const handleDeleteVehicle = async (vehicleId: string) => {
     if (!confirm("Delete this vehicle?")) return;
+
     try {
       const res = await apiDeleteVehicle(vehicleId);
       if (res.success) {
@@ -109,9 +105,7 @@ export default function MyVehicles({
       }
 
       const res = await apiUpdateVehicle(selectedVehicle._id, form);
-      if (res.success) {
-        await refreshVehicles();
-      }
+      if (res.success) await refreshVehicles();
     } catch (err) {
       console.log("Update vehicle failed:", err);
     }
@@ -121,14 +115,13 @@ export default function MyVehicles({
     <div className="w-full">
       <h2 className="text-xl font-semibold mb-4">Your Vehicles</h2>
 
-      {/* No vehicles message */}
       {vehicles.length === 0 && (
         <div className="text-center py-6 border border-gray-300 rounded-xl">
           <p className="text-gray-600 mb-2">No vehicles added yet.</p>
           <button
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent("openAddVehicleModal"));
-            }}
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("openAddVehicleModal"))
+            }
             className="px-4 py-2 bg-black text-white rounded-lg"
           >
             Add Vehicle
@@ -136,7 +129,6 @@ export default function MyVehicles({
         </div>
       )}
 
-      {/* Vehicle cards grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {vehicles.map((v: any) => {
           const imageUrls =
@@ -152,6 +144,7 @@ export default function MyVehicles({
               capacity={v.capacity || 0}
               windowType={(v.windowType as "glass" | "canvas") || "glass"}
               images={imageUrls}
+              onClick={() => {}} // REQUIRED FIX
               onEdit={() => {
                 setSelectedVehicle(v);
                 setEditOpen(true);
@@ -166,7 +159,6 @@ export default function MyVehicles({
         <p className="text-center mt-3 text-gray-500 text-sm">Uploading...</p>
       )}
 
-      {/* Edit Vehicle Modal */}
       <EditVehicleModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
