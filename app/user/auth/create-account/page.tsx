@@ -9,23 +9,28 @@ export default function CreateAccountPage() {
   const params = useSearchParams();
 
   const email = params.get("email");
-  const otp = params.get("otp");
+  const token = params.get("token"); // OTP verification token
 
   const [phone, setPhone] = useState("");
   const [phoneConfirm, setPhoneConfirm] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // PIN Logic
+  // PIN & Confirm PIN arrays
   const [pin, setPin] = useState(["", "", "", ""]);
-  const pinRef = useRef<HTMLInputElement[]>([]);
+  const [pinConfirm, setPinConfirm] = useState(["", "", "", ""]);
 
+  // ✅ FIXED: correct ref types
+  const pinRef = useRef<(HTMLInputElement | null)[]>([]);
+  const pinConfirmRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  // ---------- PIN ----------
   const handlePinChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
 
-    const newPin = [...pin];
-    newPin[index] = value;
-    setPin(newPin);
+    const updated = [...pin];
+    updated[index] = value;
+    setPin(updated);
 
     if (value && index < 3) pinRef.current[index + 1]?.focus();
   };
@@ -36,28 +41,43 @@ export default function CreateAccountPage() {
     }
   };
 
-  // Normalize to Kenyan format
+  // ---------- CONFIRM PIN ----------
+  const handlePinConfirmChange = (index: number, value: string) => {
+    if (!/^\d?$/.test(value)) return;
+
+    const updated = [...pinConfirm];
+    updated[index] = value;
+    setPinConfirm(updated);
+
+    if (value && index < 3) pinConfirmRef.current[index + 1]?.focus();
+  };
+
+  const handlePinConfirmKeyDown = (index: number, e: any) => {
+    if (e.key === "Backspace" && !pinConfirm[index] && index > 0) {
+      pinConfirmRef.current[index - 1]?.focus();
+    }
+  };
+
+  // ---------- PHONE FORMAT ----------
   const normalizePhone = (value: string) => {
     const digits = value.replace(/\D/g, "");
 
     if (digits.startsWith("07") || digits.startsWith("01")) {
       return digits.slice(0, 10);
     }
-    if (digits.startsWith("7")) {
-      return "07" + digits.slice(1, 9);
-    }
-    if (digits.startsWith("1")) {
-      return "01" + digits.slice(1, 9);
-    }
+
+    if (digits.startsWith("7")) return "07" + digits.slice(1, 9);
+    if (digits.startsWith("1")) return "01" + digits.slice(1, 9);
 
     return digits;
   };
 
+  // ---------- SUBMIT ----------
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
 
-    if (!email || !otp) {
+    if (!email || !token) {
       setMsg("Invalid session. Restart registration.");
       return;
     }
@@ -71,24 +91,30 @@ export default function CreateAccountPage() {
     }
 
     if (fixedPhone !== fixedConfirm) {
-      setMsg("Phone numbers do not match. Please enter correct phone number.");
+      setMsg("Phone numbers do not match.");
       return;
     }
 
     const fullPin = pin.join("");
+    const fullPinConfirm = pinConfirm.join("");
+
     if (fullPin.length !== 4) {
       setMsg("Enter your 4-digit PIN.");
+      return;
+    }
+
+    if (fullPin !== fullPinConfirm) {
+      setMsg("PINs do not match.");
       return;
     }
 
     setLoading(true);
 
     const { ok, data } = await postAuth("/api/auth/register-complete", {
-      email,
-      otp,
+      token,
       phone: fixedPhone,
-      password: fullPin,
-      confirmPassword: fullPin,
+      pin: fullPin,
+      confirmPin: fullPinConfirm,
     });
 
     setLoading(false);
@@ -102,9 +128,10 @@ export default function CreateAccountPage() {
       localStorage.setItem("fouron4_user_id", data.user.id);
     }
 
-    router.push("/user/dashboard");
+    router.push("/user/auth/login");
   };
 
+  // ---------- UI ----------
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-md p-6 border rounded-xl shadow">
@@ -117,14 +144,11 @@ export default function CreateAccountPage() {
         </p>
 
         <form onSubmit={handleCreate} className="space-y-6">
-
           {/* PHONE */}
           <div>
             <label className="block font-medium mb-1">Enter Phone Number</label>
-
             <div className="flex items-center gap-2">
               <span className="px-3 py-2 border rounded bg-gray-100">+254</span>
-
               <input
                 type="text"
                 className="flex-1 border px-3 py-2 rounded"
@@ -140,17 +164,17 @@ export default function CreateAccountPage() {
           {/* CONFIRM PHONE */}
           <div>
             <label className="block font-medium mb-1">Confirm Phone Number</label>
-
             <div className="flex items-center gap-2">
               <span className="px-3 py-2 border rounded bg-gray-100">+254</span>
-
               <input
                 type="text"
                 className="flex-1 border px-3 py-2 rounded"
                 placeholder="Re-enter phone number"
                 value={phoneConfirm}
                 maxLength={10}
-                onChange={(e) => setPhoneConfirm(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) =>
+                  setPhoneConfirm(e.target.value.replace(/\D/g, ""))
+                }
                 required
               />
             </div>
@@ -159,7 +183,6 @@ export default function CreateAccountPage() {
           {/* PIN */}
           <div>
             <label className="block font-medium mb-1">Create PIN (4 digits)</label>
-
             <div className="flex gap-3 justify-center">
               {pin.map((p, i) => (
                 <input
@@ -167,23 +190,38 @@ export default function CreateAccountPage() {
                   type="password"
                   maxLength={1}
                   value={p}
-                  ref={(el) => {
-                    if (el) pinRef.current[i] = el;   // FIXED (SAFE, NO REF ERROR)
-                  }}
+                  ref={(el) => (pinRef.current[i] = el)}
                   className="w-12 h-12 border text-center text-xl rounded"
                   onChange={(e) => handlePinChange(i, e.target.value)}
                   onKeyDown={(e) => handlePinKeyDown(i, e)}
                 />
               ))}
             </div>
-
-            <p className="text-center text-gray-500 text-xs mt-2">
-              Use this phone number and PIN to log in to your account.
-            </p>
           </div>
 
+          {/* CONFIRM PIN */}
+          <div>
+            <label className="block font-medium mb-1">Confirm PIN</label>
+            <div className="flex gap-3 justify-center">
+              {pinConfirm.map((p, i) => (
+                <input
+                  key={i}
+                  type="password"
+                  maxLength={1}
+                  value={p}
+                  ref={(el) => (pinConfirmRef.current[i] = el)}
+                  className="w-12 h-12 border text-center text-xl rounded"
+                  onChange={(e) => handlePinConfirmChange(i, e.target.value)}
+                  onKeyDown={(e) => handlePinConfirmKeyDown(i, e)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* ERROR */}
           {msg && <p className="text-center text-red-600 text-sm">{msg}</p>}
 
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
@@ -191,6 +229,14 @@ export default function CreateAccountPage() {
           >
             {loading ? "Creating..." : "Create Account"}
           </button>
+
+          {/* LOGIN LINK */}
+          <p className="text-center text-sm mt-3">
+            Already have an account?{" "}
+            <a href="/user/auth/login" className="text-blue-600 font-medium">
+              Log in
+            </a>
+          </p>
         </form>
       </div>
     </div>
