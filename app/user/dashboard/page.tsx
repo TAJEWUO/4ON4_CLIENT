@@ -9,9 +9,8 @@ import MyVehicles from "@/components/my-vehicles";
 import UserWidgets from "@/components/user-widgets";
 import MySafaris from "@/components/my-safaris";
 import UserFooter from "@/components/user-footer";
-import AuthModal from "@/components/auth-modal";
 
-import AddVehicleModal from "@/components/ui/add-vehicle-modal"; // ⭐ NEW IMPORT
+import AddVehicleModal from "@/components/ui/add-vehicle-modal";
 
 import { apiGetProfile, apiGetVehicles } from "@/lib/api";
 
@@ -25,9 +24,6 @@ export default function UserDashboard() {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [safaris, setSafaris] = useState<any[]>([]);
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
-  // ⭐ ADD VEHICLE MODAL CONTROL
   const [addVehicleOpen, setAddVehicleOpen] = useState(false);
 
   // Listen for vehicle modal open events
@@ -39,11 +35,14 @@ export default function UserDashboard() {
     return () => window.removeEventListener("openAddVehicleModal", openModal);
   }, []);
 
-  // LOAD USER DATA
+  // Load user data, enforce login
   useEffect(() => {
     const load = async () => {
       const userId = localStorage.getItem("fouron4_user_id");
-      if (!userId) return;
+      if (!userId) {
+        router.push("/user/auth/login");
+        return;
+      }
 
       setIsLoggedIn(true);
 
@@ -55,21 +54,14 @@ export default function UserDashboard() {
     };
 
     load();
-  }, []);
+  }, [router]);
 
-  // AFTER LOGIN
-  const handleAuthSuccess = (user: any) => {
-    localStorage.setItem("fouron4_user_id", user._id);
-    setUserProfile(user);
-    setIsLoggedIn(true);
-    setShowAuthModal(false);
-
-    router.push("/user/dashboard");
+  const goToLogin = () => {
+    router.push("/user/auth/login");
   };
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
-
       <UserHeader
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
@@ -79,11 +71,10 @@ export default function UserDashboard() {
             : "User"
         }
         isLoggedIn={isLoggedIn}
-        onLoginClick={() => setShowAuthModal(true)}
+        onLoginClick={goToLogin}
       />
 
       <div className="flex flex-1">
-
         {menuOpen && isLoggedIn && (
           <SideMenu
             onClose={() => setMenuOpen(false)}
@@ -95,12 +86,11 @@ export default function UserDashboard() {
         )}
 
         <main className="flex-1 p-6 md:p-8 space-y-6">
-
           <MyVehicles
             vehicles={vehicles}
             setVehicles={setVehicles}
             isLoggedIn={isLoggedIn}
-            onLoginClick={() => setShowAuthModal(true)}
+            onLoginClick={goToLogin}
           />
 
           <UserWidgets safaris={safaris} setSafaris={setSafaris} />
@@ -109,30 +99,23 @@ export default function UserDashboard() {
             safaris={safaris}
             setSafaris={setSafaris}
             isLoggedIn={isLoggedIn}
-            onLoginClick={() => setShowAuthModal(true)}
+            onLoginClick={goToLogin}
           />
-
         </main>
       </div>
 
       <UserFooter />
 
-      {/* ⭐ ADD VEHICLE MODAL */}
       <AddVehicleModal
         open={addVehicleOpen}
         onClose={() => setAddVehicleOpen(false)}
         onSubmit={(data) => {
-          // forward vehicle data globally
           const event = new CustomEvent("addVehicleFromDashboard", {
             detail: data,
           });
           window.dispatchEvent(event);
         }}
       />
-
-      {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} onSuccess={handleAuthSuccess} />
-      )}
     </div>
   );
 }
