@@ -9,19 +9,17 @@ export default function CreateAccountPage() {
   const params = useSearchParams();
 
   const email = params.get("email");
-  const otp = params.get("otp"); // From verify step
+  const otp = params.get("otp");
 
   const [phone, setPhone] = useState("");
   const [phoneConfirm, setPhoneConfirm] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // PIN State
+  // PIN Logic
   const [pin, setPin] = useState(["", "", "", ""]);
-  // ✅ ref now allows HTMLInputElement | null, fixing TS ref error
-  const pinRef = useRef<Array<HTMLInputElement | null>>([]);
+  const pinRef = useRef<HTMLInputElement[]>([]);
 
-  // Handle PIN box typing
   const handlePinChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
 
@@ -38,18 +36,16 @@ export default function CreateAccountPage() {
     }
   };
 
-  // Normalize phone input to full Kenyan format
+  // Normalize to Kenyan format
   const normalizePhone = (value: string) => {
     const digits = value.replace(/\D/g, "");
 
     if (digits.startsWith("07") || digits.startsWith("01")) {
       return digits.slice(0, 10);
     }
-
     if (digits.startsWith("7")) {
       return "07" + digits.slice(1, 9);
     }
-
     if (digits.startsWith("1")) {
       return "01" + digits.slice(1, 9);
     }
@@ -102,7 +98,6 @@ export default function CreateAccountPage() {
       return;
     }
 
-    // store userId
     if (data.user?.id) {
       localStorage.setItem("fouron4_user_id", data.user.id);
     }
@@ -122,6 +117,7 @@ export default function CreateAccountPage() {
         </p>
 
         <form onSubmit={handleCreate} className="space-y-6">
+
           {/* PHONE */}
           <div>
             <label className="block font-medium mb-1">Enter Phone Number</label>
@@ -154,9 +150,7 @@ export default function CreateAccountPage() {
                 placeholder="Re-enter phone number"
                 value={phoneConfirm}
                 maxLength={10}
-                onChange={(e) =>
-                  setPhoneConfirm(e.target.value.replace(/\D/g, ""))
-                }
+                onChange={(e) => setPhoneConfirm(e.target.value.replace(/\D/g, ""))}
                 required
               />
             </div>
@@ -174,8 +168,7 @@ export default function CreateAccountPage() {
                   maxLength={1}
                   value={p}
                   ref={(el) => {
-                    // ✅ safe ref assignment: handles null and keeps TS happy
-                    pinRef.current[i] = el;
+                    if (el) pinRef.current[i] = el;   // FIXED (SAFE, NO REF ERROR)
                   }}
                   className="w-12 h-12 border text-center text-xl rounded"
                   onChange={(e) => handlePinChange(i, e.target.value)}
