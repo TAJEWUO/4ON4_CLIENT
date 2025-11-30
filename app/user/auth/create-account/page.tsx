@@ -18,7 +18,8 @@ export default function CreateAccountPage() {
 
   // PIN State
   const [pin, setPin] = useState(["", "", "", ""]);
-  const pinRef = useRef<HTMLInputElement[]>([]);
+  // ✅ ref now allows HTMLInputElement | null, fixing TS ref error
+  const pinRef = useRef<Array<HTMLInputElement | null>>([]);
 
   // Handle PIN box typing
   const handlePinChange = (index: number, value: string) => {
@@ -173,9 +174,8 @@ export default function CreateAccountPage() {
                   maxLength={1}
                   value={p}
                   ref={(el) => {
-                    if (el) {
-                      pinRef.current[i] = el; // ✅ FIXED: safe ref assignment
-                    }
+                    // ✅ safe ref assignment: handles null and keeps TS happy
+                    pinRef.current[i] = el;
                   }}
                   className="w-12 h-12 border text-center text-xl rounded"
                   onChange={(e) => handlePinChange(i, e.target.value)}
