@@ -1,16 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 // SAFARI MODULE FILES
-import SafariCard from "@/components/next-safari/safari"
-import AddSafariModal from "@/components/next-safari/add-safari"
-import UpdateSafariModal from "@/components/next-safari/update-safari"
-import SafariNotificationPanel from "@/components/next-safari/safari-notification"
+import SafariCard from "@/components/next-safari/safari";
+import AddSafariModal from "@/components/next-safari/add-safari";
+import UpdateSafariModal from "@/components/next-safari/update-safari";
+import SafariNotificationPanel from "@/components/next-safari/safari-notification";
 
-import { SafariTrip, SafariStatus } from "@/components/next-safari/types"
-
-
+import { SafariTrip, SafariStatus } from "@/components/next-safari/types";
 
 export default function MySafaris({
   safaris,
@@ -18,65 +16,64 @@ export default function MySafaris({
   isLoggedIn,
   onLoginClick,
 }: {
-  safaris: SafariTrip[]
-  setSafaris: (s: SafariTrip[]) => void
-  isLoggedIn: boolean
-  onLoginClick: () => void
+  safaris: SafariTrip[];
+  setSafaris: (s: SafariTrip[]) => void;
+  isLoggedIn: boolean;
+  onLoginClick: () => void;
 }) {
-  const [showAdd, setShowAdd] = useState(false)
-  const [editing, setEditing] = useState<SafariTrip | null>(null)
+  const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<SafariTrip | null>(null);
 
   // notification panel
-  const [showNotifications, setShowNotifications] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  // check if notifications were shown this login
+  // show notifications once per login session
   useEffect(() => {
-    if (!isLoggedIn) return
+    if (!isLoggedIn) return;
 
-    const seen = localStorage.getItem("fouron4_notifications_seen")
+    const seen = localStorage.getItem("fouron4_notifications_seen");
     const publicPending = safaris.filter(
       (s) => s.source === "public" && s.status === "pending"
-    )
+    );
 
     if (!seen && publicPending.length > 0) {
-      setShowNotifications(true)
+      setShowNotifications(true);
     }
-  }, [isLoggedIn])
+  }, [isLoggedIn]);
 
-  // sort safaris by start date (nearest first)
+  // sort safaris by nearest date
   const sortedSafaris = [...(safaris || [])].sort((a, b) => {
-    const aDate = a.startDate ? new Date(a.startDate).getTime() : 0
-    const bDate = b.startDate ? new Date(b.startDate).getTime() : 0
-    return aDate - bDate
-  })
+    const aDate = a.startDate ? new Date(a.startDate).getTime() : 0;
+    const bDate = b.startDate ? new Date(b.startDate).getTime() : 0;
+    return aDate - bDate;
+  });
 
-  const accepted = sortedSafaris.filter((s) => s.status === "accepted")
-  const others = sortedSafaris.filter((s) => s.status !== "accepted")
+  const accepted = sortedSafaris.filter((s) => s.status === "accepted");
+  const others = sortedSafaris.filter((s) => s.status !== "accepted");
 
-  // handle public booking decisions
+  // PUBLIC BOOKING DECISIONS
   const handleNotificationDecisions = (
     decisions: { id: string; status: SafariStatus }[]
   ) => {
     setSafaris(
       safaris.map((s) => {
-        const found = decisions.find((d) => d.id === s.id)
-        return found ? { ...s, status: found.status } : s
+        const found = decisions.find((d) => d.id === s.id);
+        return found ? { ...s, status: found.status } : s;
       })
-    )
+    );
 
-    // mark notification as seen for this login
-    localStorage.setItem("fouron4_notifications_seen", "true")
-  }
+    localStorage.setItem("fouron4_notifications_seen", "true");
+  };
 
-  // handle adding safari
+  // ADD SAFARI
   const handleAddSafari = (trip: SafariTrip) => {
-    setSafaris([...(safaris || []), trip])
-  }
+    setSafaris([...(safaris || []), trip]);
+  };
 
-  // handle update safari
+  // UPDATE SAFARI
   const handleUpdateSafari = (updated: SafariTrip) => {
-    setSafaris(safaris.map((s) => (s.id === updated.id ? updated : s)))
-  }
+    setSafaris(safaris.map((s) => (s.id === updated.id ? updated : s)));
+  };
 
   if (!isLoggedIn) {
     return (
@@ -89,7 +86,7 @@ export default function MySafaris({
           Login / Register
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -118,7 +115,7 @@ export default function MySafaris({
         </div>
       )}
 
-      {/* NEXT SAFARIS */}
+      {/* SCHEDULED SAFARIS */}
       {accepted.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-semibold mb-2">Scheduled Safaris</h3>
@@ -127,7 +124,6 @@ export default function MySafaris({
               <SafariCard
                 key={safari.id}
                 trip={safari}
-                showDeclineLinkRight
                 onDecline={() =>
                   setSafaris(
                     safaris.map((s) =>
@@ -142,7 +138,7 @@ export default function MySafaris({
         </div>
       )}
 
-      {/* OTHER SAFARIS (pending, declined, unattended) */}
+      {/* OTHER SAFARIS */}
       {others.length > 0 && (
         <div>
           {accepted.length > 0 && (
@@ -174,14 +170,14 @@ export default function MySafaris({
         </div>
       )}
 
-      {/* ADD SAFARI MODAL */}
+      {/* ADD MODAL */}
       <AddSafariModal
         open={showAdd}
         onClose={() => setShowAdd(false)}
         onSave={handleAddSafari}
       />
 
-      {/* UPDATE SAFARI MODAL */}
+      {/* UPDATE MODAL */}
       {editing && (
         <UpdateSafariModal
           open={true}
@@ -193,13 +189,13 @@ export default function MySafaris({
               safaris.map((s) =>
                 s.id === updated.id ? { ...updated, status: "declined" } : s
               )
-            )
-            setEditing(null)
+            );
+            setEditing(null);
           }}
         />
       )}
 
-      {/* NOTIFICATION PANEL (PUBLIC BOOKINGS) */}
+      {/* NOTIFICATIONS */}
       <SafariNotificationPanel
         open={showNotifications}
         trips={safaris.filter(
@@ -207,10 +203,10 @@ export default function MySafaris({
         )}
         onDecisions={handleNotificationDecisions}
         onDone={() => {
-          setShowNotifications(false)
-          localStorage.setItem("fouron4_notifications_seen", "true")
+          setShowNotifications(false);
+          localStorage.setItem("fouron4_notifications_seen", "true");
         }}
       />
     </div>
-  )
+  );
 }
