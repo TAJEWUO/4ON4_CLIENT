@@ -3,10 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, User, Users, PanelsTopLeft, Plus } from "lucide-react";
 import DriverProfileModal from "./ui/driver-profile-modal";
-import { apiUpdateProfile } from "@/lib/api";
-
-// TODO: if you later export BASE_URL from lib/api, you can import that instead.
-const BASE_URL = "http://192.168.0.104:3002";
+import { apiUpdateProfile, BASE_URL, buildImageUrl } from "@/lib/api";
 
 type SideMenuProps = {
   onClose: () => void;
@@ -52,12 +49,9 @@ export default function SideMenu({
       userProfile.level);
 
   // Build profile image URL if exists
-  const profileImageUrl =
-    userProfile?.profileImage
-      ? userProfile.profileImage.startsWith("http")
-        ? userProfile.profileImage
-        : `${BASE_URL}${userProfile.profileImage}`
-      : null;
+  const profileImageUrl = userProfile?.profileImage
+  ? buildImageUrl(userProfile.profileImage)
+  : null;
 
   return (
     <>

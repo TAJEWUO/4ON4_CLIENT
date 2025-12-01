@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, ArrowLeft } from "lucide-react";
+import { buildImageUrl } from "@/lib/api";
 
 const languageOptions = [
   "English",
@@ -47,10 +48,9 @@ export default function DriverProfileModal({
       setNationalId(driver.nationalId || "");
       setLanguages(driver.languages || []);
       setImageUrl(
-        driver.profileImage
-          ? `http://192.168.0.104:3002/${driver.profileImage}`
-          : null
-      );
+  driver.profileImage ? buildImageUrl(driver.profileImage) : null
+);
+
     }
   }, [driver]);
 
