@@ -7,7 +7,7 @@ import UserHeader from "@/components/user-header";
 import SideMenu from "@/components/side-menu";
 import MyVehicles from "@/components/my-vehicles";
 import UserWidgets from "@/components/user-widgets";
-import MySafaris from "@/components/my-safaris";
+// ❌ removed: import MySafaris from "@/components/my-safaris";
 import UserFooter from "@/components/user-footer";
 
 import AddVehicleModal from "@/components/ui/add-vehicle-modal";
@@ -22,7 +22,7 @@ export default function UserDashboard() {
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [vehicles, setVehicles] = useState<any[]>([]);
-  const [safaris, setSafaris] = useState<any[]>([]);
+  const [safaris, setSafaris] = useState<any[]>([]); // still kept for widgets
 
   const [addVehicleOpen, setAddVehicleOpen] = useState(false);
 
@@ -95,12 +95,13 @@ export default function UserDashboard() {
 
           <UserWidgets safaris={safaris} setSafaris={setSafaris} />
 
-          <MySafaris
+          {/* ❌ REMOVED MySafaris block */}
+          {/* <MySafaris
             safaris={safaris}
             setSafaris={setSafaris}
             isLoggedIn={isLoggedIn}
             onLoginClick={goToLogin}
-          />
+          /> */}
         </main>
       </div>
 
