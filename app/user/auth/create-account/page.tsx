@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import CreateAccountForm from "./form";
+import CreatePasswordForm from "./form";
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <CreateAccountForm />
+    <Suspense fallback={<div className="p-6 text-center">Loading…</div>}>
+      <CreatePasswordForm />
     </Suspense>
   );
 }
