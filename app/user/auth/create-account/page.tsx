@@ -1,10 +1,6 @@
-import { Suspense } from "react";
-import CreatePasswordForm from "./form";
+// app/user/auth/create-account/page.tsx
+import CreateAccountForm from "./form";
 
-export default function Page() {
-  return (
-    <Suspense fallback={<div className="p-6 text-center">Loading…</div>}>
-      <CreatePasswordForm />
-    </Suspense>
-  );
+export default function CreateAccountPage() {
+  return <CreateAccountForm />;
 }

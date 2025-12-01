@@ -1,10 +1,6 @@
-import { Suspense } from "react";
+// app/user/auth/login/page.tsx
 import LoginForm from "./form";
 
-export default function Page() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm />
-    </Suspense>
-  );
+export default function LoginPage() {
+  return <LoginForm />;
 }
