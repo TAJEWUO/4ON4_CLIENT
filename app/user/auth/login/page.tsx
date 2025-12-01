@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { postAuth } from "@/lib/auth-api";
 
@@ -9,64 +9,59 @@ export default function LoginPage() {
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState(["", "", "", ""]);
-  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(false);
 
-  // Normalize phone number input
-  const normalizePhoneForLogin = (raw: string) => {
+  // --- Normalize ---
+  const normalizePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
-
-    if (digits.startsWith("07") || digits.startsWith("01"))
-      return digits.slice(0, 10);
-
+    if (digits.startsWith("07") || digits.startsWith("01")) return digits.slice(0, 10);
     if (digits.startsWith("7")) return "07" + digits.slice(1, 9);
     if (digits.startsWith("1")) return "01" + digits.slice(1, 9);
-
     return digits;
   };
 
-  const handlePinChange = (i: number, val: string) => {
-    if (!/^\d?$/.test(val)) return;
+  // --- PIN Input Handling ---
+  const handlePinChange = (i: number, v: string) => {
+    if (!/^\d?$/.test(v)) return;
 
     const updated = [...pin];
-    updated[i] = val;
+    updated[i] = v;
     setPin(updated);
 
-    if (val && i < 3) inputsRef.current[i + 1]?.focus();
-  };
-
-  const handlePinKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !pin[i] && i > 0) {
-      inputsRef.current[i - 1]?.focus();
+    if (v && i < 3) {
+      const next = document.getElementById(`pin-${i + 1}`) as HTMLInputElement | null;
+      next?.focus();
     }
   };
 
+  const handlePinKeyDown = (i: number, e: any) => {
+    if (e.key === "Backspace" && !pin[i] && i > 0) {
+      const prev = document.getElementById(`pin-${i - 1}`) as HTMLInputElement | null;
+      prev?.focus();
+    }
+  };
+
+  // --- Trigger Shake ---
   const triggerShake = () => {
     setShake(true);
     setTimeout(() => setShake(false), 500);
-
     setPin(["", "", "", ""]);
-    inputsRef.current[0]?.focus();
+    (document.getElementById("pin-0") as HTMLInputElement | null)?.focus();
   };
 
-  async function handleLogin(e: React.FormEvent) {
+  // --- Submit Login ---
+  const handleLogin = async (e: any) => {
     e.preventDefault();
     setMsg("");
 
-    const formatted = normalizePhoneForLogin(phone);
+    const formatted = normalizePhone(phone);
 
-    if (formatted.length !== 10) {
-      setMsg("Enter a valid Kenyan phone number.");
-      return;
-    }
+    if (formatted.length !== 10) return setMsg("Enter a valid Kenyan phone number.");
 
     const fullPin = pin.join("");
-    if (fullPin.length !== 4) {
-      setMsg("Enter your 4-digit PIN.");
-      return;
-    }
+    if (fullPin.length !== 4) return setMsg("Enter your 4-digit PIN.");
 
     setLoading(true);
 
@@ -83,13 +78,11 @@ export default function LoginPage() {
       return;
     }
 
-    if (data.user?.id) {
-      localStorage.setItem("fouron4_user_id", data.user.id);
-    }
-
+    localStorage.setItem("fouron4_user_id", data.user.id);
     router.push("/user/dashboard");
-  }
+  };
 
+  // --- UI ---
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-md p-6 border rounded-xl shadow">
@@ -97,12 +90,11 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6">
 
+          {/* PHONE */}
           <div>
             <label className="block mb-1 font-medium">ENTER PHONE NUMBER</label>
-
             <div className="flex items-center gap-2">
               <span className="px-3 py-2 border rounded bg-gray-100">+254</span>
-
               <input
                 type="text"
                 className="flex-1 border px-3 py-2 rounded"
@@ -114,24 +106,18 @@ export default function LoginPage() {
             </div>
           </div>
 
-
+          {/* PIN */}
           <div>
             <label className="block mb-1 font-medium">ENTER PIN</label>
 
-            <div
-              className={`flex gap-3 justify-center ${
-                shake ? "animate-shake" : ""
-              }`}
-            >
+            <div className={`flex gap-3 justify-center ${shake ? "animate-shake" : ""}`}>
               {pin.map((p, i) => (
                 <input
                   key={i}
+                  id={`pin-${i}`}
                   type="password"
                   maxLength={1}
                   value={p}
-                  ref={(el) => {
-                    inputsRef.current[i] = el;
-                  }}
                   className="w-12 h-12 border text-center text-xl rounded"
                   onChange={(e) => handlePinChange(i, e.target.value)}
                   onKeyDown={(e) => handlePinKeyDown(i, e)}
@@ -167,4 +153,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
