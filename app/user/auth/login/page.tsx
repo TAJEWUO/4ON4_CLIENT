@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(false);
 
-  // FORMAT phone into valid 07 / 01 formats
+  // Normalize phone number input
   const normalizePhoneForLogin = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
 
@@ -37,9 +37,10 @@ export default function LoginPage() {
     if (val && i < 3) inputsRef.current[i + 1]?.focus();
   };
 
-  const handlePinKeyDown = (i: number, e: any) => {
-    if (e.key === "Backspace" && !pin[i] && i > 0)
+  const handlePinKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !pin[i] && i > 0) {
       inputsRef.current[i - 1]?.focus();
+    }
   };
 
   const triggerShake = () => {
@@ -92,12 +93,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-md p-6 border rounded-xl shadow">
-
         <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
 
         <form onSubmit={handleLogin} className="space-y-6">
 
-          {/* PHONE */}
           <div>
             <label className="block mb-1 font-medium">ENTER PHONE NUMBER</label>
 
@@ -110,14 +109,12 @@ export default function LoginPage() {
                 placeholder="07xxxxxxxx or 7xxxxxxxx"
                 value={phone}
                 maxLength={10}
-                onChange={(e) =>
-                  setPhone(e.target.value.replace(/\D/g, ""))
-                }
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
               />
             </div>
           </div>
 
-          {/* PIN */}
+
           <div>
             <label className="block mb-1 font-medium">ENTER PIN</label>
 
@@ -132,7 +129,9 @@ export default function LoginPage() {
                   type="password"
                   maxLength={1}
                   value={p}
-                  ref={(el) => (inputsRef.current[i] = el)}
+                  ref={(el) => {
+                    inputsRef.current[i] = el;
+                  }}
                   className="w-12 h-12 border text-center text-xl rounded"
                   onChange={(e) => handlePinChange(i, e.target.value)}
                   onKeyDown={(e) => handlePinKeyDown(i, e)}
@@ -168,3 +167,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
