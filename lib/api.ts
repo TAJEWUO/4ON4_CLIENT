@@ -1,48 +1,42 @@
+// lib/api.ts
+
 // ==============================
-// AUTO-DETECT BACKEND BASE URL
+// BACKEND BASE URL (single source of truth)
 // ==============================
-function getBaseUrl(): string {
-  // 1. Production override (future deployment)
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
+//
+// In Vercel, set:
+//   NEXT_PUBLIC_BACKEND_URL = https://fouron4-backend-1.onrender.com
+//
+// In local .env.local, set (if you run backend locally):
+//   NEXT_PUBLIC_BACKEND_URL = http://localhost:3002
+//
+// If the env var is missing, we fall back to localhost:3002.
 
-  // 2. Server-side rendering → localhost
-  if (typeof window === "undefined") {
-    return "http://localhost:3002";
-  }
+export const BASE_URL: string =
+  (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3002").replace(
+    /\/+$/,
+    ""
+  );
 
-  const host = window.location.hostname;
-
-  // 3. Laptop / Desktop
-  if (host === "localhost" || host === "127.0.0.1") {
-    return "http://localhost:3002";
-  }
-
-  // 4. Phone or tablet on WiFi (192.168.0.x)
-  if (host.startsWith("192.168.0.")) {
-    return "http://192.168.0.101:3002"; // FIXED to working backend IP
-  }
-
-  // 5. Any other subnet (192.168.1.x, 10.x.x.x)
-  return "http://192.168.0.101:3002";
+// Small helper to parse JSON safely
+async function jsonFetch(url: string, options: RequestInit) {
+  const res = await fetch(url, options);
+  const data = await res.json().catch(() => ({}));
+  return { res, data };
 }
 
-export const BASE_URL = getBaseUrl();
-
-
 // ==============================
-// CLEAN + BUILD IMAGE URL
+// IMAGE URL BUILDER
 // ==============================
 export function buildImageUrl(path?: string | null): string {
   if (!path) return "/placeholder.svg";
 
-  // Already a full URL
+  // Already full URL
   if (path.startsWith("http://") || path.startsWith("https://")) {
     return path;
   }
 
-  // Normalize slashes & clean "src/"
+  // Normalize slashes & strip "src/"
   let cleaned = path
     .replace(/\\/g, "/")
     .replace(/^src\//, "")
@@ -56,93 +50,105 @@ export function buildImageUrl(path?: string | null): string {
   return `${BASE_URL}/${cleaned}`;
 }
 
-
 // ===================================================
-// API FUNCTIONS
+// OPTIONAL AUTH HELPERS (legacy, only if you still use them)
+// Most of your new auth flow uses postAuth from lib/auth-api.ts.
 // ===================================================
 
-/* AUTH */
 export async function apiRegister(data: any) {
-  const res = await fetch(`${BASE_URL}/api/auth/register`, {
+  const { data: json } = await jsonFetch(`${BASE_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-    mode: "cors",
   });
-  return res.json();
+  return json;
 }
 
 export async function apiLogin(identifier: string, password: string) {
-  const res = await fetch(`${BASE_URL}/api/auth/login`, {
+  const { data: json } = await jsonFetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier, password }),
-    mode: "cors",
   });
-  return res.json();
+  return json;
 }
 
-export async function apiResetPassword(identifier: string, newPassword: string) {
-  const res = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+export async function apiResetPassword(
+  identifier: string,
+  newPassword: string
+) {
+  const { data: json } = await jsonFetch(`${BASE_URL}/api/auth/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier, newPassword }),
-    mode: "cors",
   });
-  return res.json();
+  return json;
 }
 
+// ===================================================
+// PROFILE
+// ===================================================
 
-/* PROFILE */
 export async function apiGetProfile(userId: string) {
-  const res = await fetch(`${BASE_URL}/api/user/profile/${userId}`, {
-    method: "GET",
-    mode: "cors",
-  });
-  return res.json();
+  const { data: json } = await jsonFetch(
+    `${BASE_URL}/api/user/profile/${userId}`,
+    {
+      method: "GET",
+    }
+  );
+  return json;
 }
 
 export async function apiUpdateProfile(userId: string, data: FormData) {
-  const res = await fetch(`${BASE_URL}/api/user/profile/${userId}`, {
-    method: "PUT",
-    body: data,
-    mode: "cors",
-  });
-  return res.json();
+  const { data: json } = await jsonFetch(
+    `${BASE_URL}/api/user/profile/${userId}`,
+    {
+      method: "PUT",
+      body: data,
+    }
+  );
+  return json;
 }
 
+// ===================================================
+// VEHICLES
+// ===================================================
 
-/* VEHICLES */
 export async function apiUploadVehicle(formData: FormData) {
-  const res = await fetch(`${BASE_URL}/api/vehicles/upload`, {
+  const { data: json } = await jsonFetch(`${BASE_URL}/api/vehicles/upload`, {
     method: "POST",
     body: formData,
-    mode: "cors",
   });
-  return res.json();
+  return json;
 }
 
 export async function apiGetVehicles(userId: string) {
-  const res = await fetch(`${BASE_URL}/api/vehicles/${userId}`, {
-    method: "GET",
-    mode: "cors",
-  });
-  return res.json();
+  const { data: json } = await jsonFetch(
+    `${BASE_URL}/api/vehicles/${userId}`,
+    {
+      method: "GET",
+    }
+  );
+  return json;
 }
 
 export async function apiDeleteVehicle(vehicleId: string) {
-  const res = await fetch(`${BASE_URL}/api/vehicles/${vehicleId}`, {
-    method: "DELETE",
-    mode: "cors",
-  });
-  return res.json();
+  const { data: json } = await jsonFetch(
+    `${BASE_URL}/api/vehicles/${vehicleId}`,
+    {
+      method: "DELETE",
+    }
+  );
+  return json;
 }
 
 export async function apiUpdateVehicle(vehicleId: string, data: FormData) {
-  const res = await fetch(`${BASE_URL}/api/vehicles/${vehicleId}`, {
-    method: "PUT",
-    body: data,
-    mode: "cors",
-  });
-  return res.json();
+  const { data: json } = await jsonFetch(
+    `${BASE_URL}/api/vehicles/${vehicleId}`,
+    {
+      method: "PUT",
+      body: data,
+    }
+  );
+  return json;
 }

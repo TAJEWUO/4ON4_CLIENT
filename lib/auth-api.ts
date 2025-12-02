@@ -1,18 +1,17 @@
 // lib/auth-api.ts
 
-// This is the base URL of your backend (Render or local)
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { BASE_URL } from "./api";
 
-// Small helper for POST JSON auth requests (login, register, etc.)
+// Small helper for POST JSON auth requests (login, register, verify, reset)
 export async function postAuth(path: string, body: any) {
   try {
-    const res = await fetch(`${backendUrl}${path}`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     return { ok: res.ok, data };
   } catch (err) {
     console.error("Auth POST error:", err);
