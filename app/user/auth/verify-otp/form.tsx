@@ -11,65 +11,29 @@ const OTP_EXPIRY_SECONDS = 120;
 export default function VerifyOtpForm() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
-  const [mode, setMode] = useState<"register" | "reset">("register");
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(OTP_EXPIRY_SECONDS);
 
-  // Load email + mode from localStorage
+  // Load email from localStorage
   useEffect(() => {
-    const storedEmail = localStorage.getItem("fouron4_auth_email");
-    const storedMode =
-      (localStorage.getItem("fouron4_verify_mode") as "register" | "reset") ||
-      "register";
-
-    setEmail(storedEmail);
-    setMode(storedMode);
+    setEmail(localStorage.getItem("fouron4_auth_email"));
   }, []);
 
-  // Countdown
+  // Countdown timer
   useEffect(() => {
     if (secondsLeft <= 0) return;
-    const t = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
+    const t = setInterval(() => setSecondsLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
   }, [secondsLeft]);
-
-  const handleChange = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
-
-    const updated = [...otp];
-    updated[index] = value;
-    setOtp(updated);
-
-    if (value && index < OTP_LENGTH - 1) {
-      const next = document.getElementById(
-        `otp-${index + 1}`
-      ) as HTMLInputElement | null;
-      next?.focus();
-    }
-  };
-
-  const handleKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      const prev = document.getElementById(
-        `otp-${index - 1}`
-      ) as HTMLInputElement | null;
-      prev?.focus();
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
 
     if (!email) {
-      setMsg("Missing email context. Start again from Register / Forgot PIN.");
+      setMsg("Missing email. Please start again.");
       return;
     }
 
@@ -80,49 +44,44 @@ export default function VerifyOtpForm() {
 
     const code = otp.join("");
     if (code.length !== OTP_LENGTH) {
-      setMsg("Enter the 6-digit code.");
+      setMsg("Enter all 6 digits.");
       return;
     }
 
     setLoading(true);
 
-    if (mode === "register") {
-      const { ok, data } = await postAuth("/api/auth/register-verify", {
-        email,
-        otp: code,
-      });
-      setLoading(false);
+    // 🔥 Correct backend route
+    const { ok, data } = await postAuth("/api/auth/verify-email-code", {
+      email,
+      code,
+    });
 
-      if (!ok) {
-        setMsg(data?.message || "Invalid or expired code.");
-        return;
-      }
+    setLoading(false);
 
-      // Continue to create account
-      router.push("/user/auth/create-account");
-    } else {
-      // mode === "reset"
-      const { ok, data } = await postAuth("/api/auth/forgot-pin-verify", {
-        email,
-        otp: code,
-      });
-      setLoading(false);
+    if (!ok) {
+      setMsg(data?.message || "Invalid or expired OTP.");
+      return;
+    }
 
-      if (!ok) {
-        setMsg(data?.message || "Invalid or expired code.");
-        return;
-      }
+    // OTP valid → continue to create account
+    router.push("/user/auth/create-account");
+  };
 
-      // Expect backend to return phone linked to email + reset token
-      if (data?.phone) {
-        localStorage.setItem("fouron4_reset_phone", data.phone);
-      }
-      if (data?.resetToken) {
-        localStorage.setItem("fouron4_reset_token", data.resetToken);
-      }
-      localStorage.setItem("fouron4_reset_email", email);
+  const handleChange = (index: number, value: string) => {
+    if (!/^\d?$/.test(value)) return;
 
-      router.push("/user/auth/reset-pin");
+    const updated = [...otp];
+    updated[index] = value;
+    setOtp(updated);
+
+    if (value && index < OTP_LENGTH - 1) {
+      document.getElementById(`otp-${index + 1}`)?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      document.getElementById(`otp-${index - 1}`)?.focus();
     }
   };
 
@@ -134,19 +93,15 @@ export default function VerifyOtpForm() {
       className="min-h-screen flex items-center justify-center bg-white text-black px-4"
       style={{ fontFamily: 'Candara, "Candara Light", system-ui, sans-serif' }}
     >
-      <div className="w-full max-w-md bg-white/95 border border-black/20 rounded-2xl shadow-sm px-6 py-8 md:px-8 md:py-10 transition-transform duration-150 hover:-translate-y-0.5">
+      <div className="w-full max-w-md bg-white/95 border border-black/20 rounded-2xl shadow-sm px-6 py-8 md:px-8 md:py-10">
         <div className="text-center mb-4">
-          <div className="text-3xl font-extrabold tracking-wide mb-2">
-            4ON4
-          </div>
+          <div className="text-3xl font-extrabold tracking-wide mb-2">4ON4</div>
           <span className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold tracking-wide">
             DRIVER ACCOUNT
           </span>
         </div>
 
-        <h1 className="text-xl font-semibold text-center mb-2">
-          Verify OTP
-        </h1>
+        <h1 className="text-xl font-semibold text-center mb-2">Verify OTP</h1>
 
         {email && (
           <p className="text-center text-xs text-gray-600 mb-4">
@@ -178,27 +133,16 @@ export default function VerifyOtpForm() {
             </span>
           </p>
 
-          {msg && (
-            <p className="text-center text-sm text-red-600 leading-snug">
-              {msg}
-            </p>
-          )}
+          {msg && <p className="text-center text-sm text-red-600">{msg}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-2.5 rounded-md bg-black text-white text-sm font-semibold tracking-wide disabled:opacity-60 disabled:cursor-not-allowed transition-transform duration-150 hover:-translate-y-0.5"
+            className="w-full mt-2 py-2.5 rounded-md bg-black text-white text-sm font-semibold tracking-wide"
           >
             {loading ? "Verifying..." : "Verify Code"}
           </button>
         </form>
-
-        <p className="mt-5 text-center text-xs">
-          Wrong email?{" "}
-          <a href="/user/auth/register" className="text-blue-700 hover:underline">
-            Start again
-          </a>
-        </p>
       </div>
     </div>
   );
