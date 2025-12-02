@@ -22,7 +22,7 @@ export default function RegisterForm() {
 
     setLoading(true);
 
-    const { ok, data } = await postAuth("/api/auth/register-start", {
+    const { ok, data } = await postAuth("/auth/register-start", {
       email,
     });
 
@@ -33,9 +33,8 @@ export default function RegisterForm() {
       return;
     }
 
-    // Save email + mode for verify-otp
+    // Save email for verify-otp & create-account
     localStorage.setItem("fouron4_auth_email", email);
-    localStorage.setItem("fouron4_verify_mode", "register");
 
     router.push("/user/auth/verify-otp");
   };

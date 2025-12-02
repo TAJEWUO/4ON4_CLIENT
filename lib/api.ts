@@ -7,7 +7,7 @@
 // In Vercel, set:
 //   NEXT_PUBLIC_BACKEND_URL = https://fouron4-backend-1.onrender.com
 //
-// In local .env.local, set (if you run backend locally):
+// In local .env.local, if you run backend locally:
 //   NEXT_PUBLIC_BACKEND_URL = http://localhost:3002
 //
 // If the env var is missing, we fall back to localhost:3002.
@@ -31,18 +31,15 @@ async function jsonFetch(url: string, options: RequestInit) {
 export function buildImageUrl(path?: string | null): string {
   if (!path) return "/placeholder.svg";
 
-  // Already full URL
   if (path.startsWith("http://") || path.startsWith("https://")) {
     return path;
   }
 
-  // Normalize slashes & strip "src/"
   let cleaned = path
     .replace(/\\/g, "/")
     .replace(/^src\//, "")
     .replace(/^\/+/, "");
 
-  // If only filename → assume vehicle folder
   if (!cleaned.includes("/")) {
     cleaned = "uploads/vehicles/" + cleaned;
   }
@@ -51,8 +48,7 @@ export function buildImageUrl(path?: string | null): string {
 }
 
 // ===================================================
-// OPTIONAL AUTH HELPERS (legacy, only if you still use them)
-// Most of your new auth flow uses postAuth from lib/auth-api.ts.
+// LEGACY AUTH HELPERS (only used in some places)
 // ===================================================
 
 export async function apiRegister(data: any) {
@@ -77,11 +73,14 @@ export async function apiResetPassword(
   identifier: string,
   newPassword: string
 ) {
-  const { data: json } = await jsonFetch(`${BASE_URL}/api/auth/reset-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ identifier, newPassword }),
-  });
+  const { data: json } = await jsonFetch(
+    `${BASE_URL}/api/auth/reset-password`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, newPassword }),
+    }
+  );
   return json;
 }
 

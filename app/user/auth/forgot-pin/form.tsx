@@ -2,11 +2,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { postAuth } from "@/lib/auth-api";
 
 export default function ForgotPinForm() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,22 +19,18 @@ export default function ForgotPinForm() {
     }
 
     setLoading(true);
-
-    const { ok, data } = await postAuth("/api/auth/forgot-pin-start", {
-      email,
-    });
-
+    const { ok, data } = await postAuth("/auth/reset-start", { email });
     setLoading(false);
 
+    // Backend always returns generic message to avoid user enumeration
     if (!ok) {
       setMsg(data?.message || "Failed to send verification code.");
       return;
     }
 
-    localStorage.setItem("fouron4_auth_email", email);
-    localStorage.setItem("fouron4_verify_mode", "reset");
-
-    router.push("/user/auth/verify-otp");
+    setMsg(
+      "If this email is registered, a reset link has been sent. Check your inbox."
+    );
   };
 
   return (
@@ -54,13 +48,7 @@ export default function ForgotPinForm() {
           </span>
         </div>
 
-        <h1 className="text-xl font-semibold text-center mb-4">
-          Forgot PIN
-        </h1>
-
-        <p className="text-center text-xs text-gray-600 mb-4">
-          Enter the email linked to your driver account.
-        </p>
+        <h1 className="text-xl font-semibold text-center mb-4">Forgot PIN</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>

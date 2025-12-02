@@ -11,6 +11,7 @@ export default function CreateAccountForm() {
   const router = useRouter();
 
   const [email, setEmail] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [phoneInput, setPhoneInput] = useState("");
   const [phoneConfirmInput, setPhoneConfirmInput] = useState("");
   const [pin, setPin] = useState<string[]>(Array(PIN_LENGTH).fill(""));
@@ -22,23 +23,24 @@ export default function CreateAccountForm() {
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("fouron4_auth_email");
+    const storedToken = localStorage.getItem("fouron4_register_token");
     setEmail(storedEmail);
+    setToken(storedToken);
   }, []);
 
   const normalizePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
-
     if (digits.startsWith("07") || digits.startsWith("01")) {
       return digits.slice(0, 10);
     }
     if (digits.startsWith("7")) return "07" + digits.slice(1, 9);
     if (digits.startsWith("1")) return "01" + digits.slice(1, 9);
-
-    return digits;
+    return digits.slice(0, 10);
   };
 
-  const handlePinChange = (list: string[], setter: (v: string[]) => void) => {
-    return (index: number, value: string, idPrefix: string) => {
+  const handlePinChange =
+    (list: string[], setter: (v: string[]) => void) =>
+    (index: number, value: string, idPrefix: string) => {
       if (!/^\d?$/.test(value)) return;
       const updated = [...list];
       updated[index] = value;
@@ -51,7 +53,6 @@ export default function CreateAccountForm() {
         next?.focus();
       }
     };
-  };
 
   const handlePinKeyDown =
     (list: string[], idPrefix: string) =>
@@ -68,8 +69,8 @@ export default function CreateAccountForm() {
     e.preventDefault();
     setMsg("");
 
-    if (!email) {
-      setMsg("Missing email context. Start from Register again.");
+    if (!email || !token) {
+      setMsg("Missing verification. Start again from Register.");
       return;
     }
 
@@ -101,10 +102,11 @@ export default function CreateAccountForm() {
 
     setLoading(true);
 
-    const { ok, data } = await postAuth("/api/auth/register-complete", {
-      email,
+    const { ok, data } = await postAuth("/auth/register-complete", {
+      token,
       phone: fixedPhone,
       pin: fullPin,
+      confirmPin: fullPinConfirm,
     });
 
     setLoading(false);
@@ -120,9 +122,13 @@ export default function CreateAccountForm() {
       return;
     }
 
-    if (data.user?.id) {
+    if (data?.user?.id) {
       localStorage.setItem("fouron4_user_id", data.user.id);
     }
+
+    // clear temp auth info
+    localStorage.removeItem("fouron4_auth_email");
+    localStorage.removeItem("fouron4_register_token");
 
     router.push("/user/auth/login");
   };
@@ -223,7 +229,9 @@ export default function CreateAccountForm() {
                       "create-pin"
                     )
                   }
-                  onKeyDown={(e)=>handlePinKeyDown(pin, "create-pin")(index,e)}
+                  onKeyDown={(e) =>
+                    handlePinKeyDown(pin, "create-pin")(index, e)
+                  }
                 />
               ))}
             </div>
@@ -251,7 +259,12 @@ export default function CreateAccountForm() {
                       "create-pin-confirm"
                     )
                   }
-                  onKeyDown={(e)=>handlePinKeyDown(pinConfirm, "create-pin-confirm")(index,e)}
+                  onKeyDown={(e) =>
+                    handlePinKeyDown(pinConfirm, "create-pin-confirm")(
+                      index,
+                      e
+                    )
+                  }
                 />
               ))}
             </div>
