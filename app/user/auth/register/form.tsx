@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { postAuth } from "@/lib/auth-api";
+import { startRegister } from "@/lib/auth-api";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -22,9 +22,7 @@ export default function RegisterForm() {
 
     setLoading(true);
 
-    const { ok, data } = await postAuth("/auth/register-start", {
-      email,
-    });
+    const { ok, data } = await startRegister(email);
 
     setLoading(false);
 

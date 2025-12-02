@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { postAuth } from "@/lib/auth-api";
+import { verifyEmailCode } from "@/lib/auth-api";
 
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_SECONDS = 120;
@@ -77,10 +77,7 @@ export default function VerifyOtpForm() {
     }
 
     setLoading(true);
-    const { ok, data } = await postAuth("/auth/verify-email-code", {
-      email,
-      code,
-    });
+    const { ok, data } = await verifyEmailCode(email, code);
     setLoading(false);
 
     if (!ok) {

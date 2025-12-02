@@ -2,7 +2,7 @@
 
 import { BASE_URL } from "./api";
 
-// Small helper for JSON POST requests
+// Low-level helper for JSON POST requests
 export async function postAuth(path: string, body: any) {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -20,7 +20,7 @@ export async function postAuth(path: string, body: any) {
 }
 
 // =============================
-// AUTH FLOWS (CORRECT ROUTES)
+// AUTH FLOW HELPERS
 // =============================
 
 // 1) Start registration — send OTP
@@ -34,7 +34,12 @@ export function verifyEmailCode(email: string, code: string) {
 }
 
 // 3) Complete registration (phone + pin)
-export function completeRegister(payload: any) {
+export function completeRegister(payload: {
+  token: string;
+  phone: string;
+  pin: string;
+  confirmPin: string;
+}) {
   return postAuth("/api/auth/register-complete", payload);
 }
 

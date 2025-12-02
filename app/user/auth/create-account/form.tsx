@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { postAuth } from "@/lib/auth-api";
+import { completeRegister } from "@/lib/auth-api";
 
 const PIN_LENGTH = 4;
 
@@ -102,7 +102,7 @@ export default function CreateAccountForm() {
 
     setLoading(true);
 
-    const { ok, data } = await postAuth("/auth/register-complete", {
+    const { ok, data } = await completeRegister({
       token,
       phone: fixedPhone,
       pin: fullPin,
@@ -260,10 +260,10 @@ export default function CreateAccountForm() {
                     )
                   }
                   onKeyDown={(e) =>
-                    handlePinKeyDown(pinConfirm, "create-pin-confirm")(
-                      index,
-                      e
-                    )
+                    handlePinKeyDown(
+                      pinConfirm,
+                      "create-pin-confirm"
+                    )(index, e)
                   }
                 />
               ))}
