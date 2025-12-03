@@ -2,7 +2,7 @@
 
 import { BASE_URL } from "./api";
 
-// Low-level helper for JSON POST requests
+// Helper for JSON POST requests
 export async function postAuth(path: string, body: any) {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -19,27 +19,22 @@ export async function postAuth(path: string, body: any) {
   }
 }
 
-// =============================
-// AUTH FLOW HELPERS
-// =============================
+/* ======================================
+   AUTH CORE FLOW (REGISTER + VERIFY)
+====================================== */
 
-// 1) Start registration — send OTP
+// 1) Register-start (send OTP)
 export function startRegister(email: string) {
   return postAuth("/api/auth/register-start", { email });
 }
 
-// 2) Verify OTP
+// 2) Verify email OTP
 export function verifyEmailCode(email: string, code: string) {
   return postAuth("/api/auth/verify-email-code", { email, code });
 }
 
-// 3) Complete registration (phone + pin)
-export function completeRegister(payload: {
-  token: string;
-  phone: string;
-  pin: string;
-  confirmPin: string;
-}) {
+// 3) Complete registration
+export function completeRegister(payload: any) {
   return postAuth("/api/auth/register-complete", payload);
 }
 
@@ -48,12 +43,12 @@ export function login(phone: string, pin: string) {
   return postAuth("/api/auth/login", { phone, password: pin });
 }
 
-// 5) Start reset-pin
+// 5) Forgot PIN
 export function forgotPin(email: string) {
   return postAuth("/api/auth/reset-start", { email });
 }
 
-// 6) Complete reset
+// 6) Reset PIN
 export function resetPin(token: string, pin: string, confirmPin: string) {
   return postAuth("/api/auth/reset-complete", {
     token,

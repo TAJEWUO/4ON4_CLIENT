@@ -21,9 +21,7 @@ export default function RegisterForm() {
     }
 
     setLoading(true);
-
     const { ok, data } = await startRegister(email);
-
     setLoading(false);
 
     if (!ok) {
@@ -58,9 +56,7 @@ export default function RegisterForm() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Enter Email
-            </label>
+            <label className="block text-sm font-medium mb-1">Enter Email</label>
             <div className="border border-black/30 rounded-md bg-white/90 px-3 py-2">
               <input
                 type="email"

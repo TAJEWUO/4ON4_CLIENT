@@ -17,8 +17,7 @@ export default function VerifyOtpForm() {
   const [secondsLeft, setSecondsLeft] = useState(OTP_EXPIRY_SECONDS);
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem("fouron4_auth_email");
-    setEmail(storedEmail);
+    setEmail(localStorage.getItem("fouron4_auth_email"));
   }, []);
 
   useEffect(() => {
@@ -37,21 +36,14 @@ export default function VerifyOtpForm() {
     setOtp(updated);
 
     if (value && index < OTP_LENGTH - 1) {
-      const next = document.getElementById(
-        `otp-${index + 1}`
-      ) as HTMLInputElement | null;
+      const next = document.getElementById(`otp-${index + 1}`) as HTMLInputElement | null;
       next?.focus();
     }
   };
 
-  const handleKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      const prev = document.getElementById(
-        `otp-${index - 1}`
-      ) as HTMLInputElement | null;
+      const prev = document.getElementById(`otp-${index - 1}`) as HTMLInputElement | null;
       prev?.focus();
     }
   };
@@ -85,7 +77,6 @@ export default function VerifyOtpForm() {
       return;
     }
 
-    // Backend returns a token for completing registration
     if (data?.token) {
       localStorage.setItem("fouron4_register_token", data.token);
     }
@@ -111,9 +102,7 @@ export default function VerifyOtpForm() {
           </span>
         </div>
 
-        <h1 className="text-xl font-semibold text-center mb-2">
-          Verify OTP
-        </h1>
+        <h1 className="text-xl font-semibold text-center mb-2">Verify OTP</h1>
 
         {email && (
           <p className="text-center text-xs text-gray-600 mb-4">
@@ -162,10 +151,7 @@ export default function VerifyOtpForm() {
 
         <p className="mt-5 text-center text-xs">
           Wrong email?{" "}
-          <a
-            href="/user/auth/register"
-            className="text-blue-700 hover:underline"
-          >
+          <a href="/user/auth/register" className="text-blue-700 hover:underline">
             Start again
           </a>
         </p>
