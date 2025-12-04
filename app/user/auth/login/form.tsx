@@ -1,4 +1,3 @@
-// app/user/auth/login/form.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -7,176 +6,93 @@ import { loginUser } from "@/lib/auth-api";
 
 export default function LoginForm() {
   const router = useRouter();
-
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
-  const [showPin, setShowPin] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Normalize like backend: 07xxxxxxx / 01xxxxxxx / 7xxxxxxx / 1xxxxxxx
-  const normalizePhone = (raw: string) => {
-    const digits = raw.replace(/\D/g, "");
-
-    if (digits.startsWith("07") || digits.startsWith("01")) {
-      return digits.slice(0, 10);
+  const normalizeLocalPhone = (value: string) => {
+    let v = value.replace(/\D/g, "");
+    if (v.startsWith("07") || v.startsWith("01")) {
+      return v.slice(1);
     }
-    if (digits.startsWith("7")) return "07" + digits.substring(1, 9);
-    if (digits.startsWith("1")) return "01" + digits.substring(1, 9);
-
-    return digits.slice(0, 10);
+    return v;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
 
-    const cleanedPhone = normalizePhone(phone);
-
-    if (cleanedPhone.length !== 10) {
-      setMsg("Enter a valid Kenyan phone number (07.. or 01..).");
-      return;
-    }
-
     if (pin.length !== 4) {
       setMsg("PIN must be 4 digits.");
       return;
     }
 
-    setLoading(true);
-
-    const { ok, data } = await login(cleanedPhone, pin);
-
-    setLoading(false);
-
-    if (!ok) {
-      // Clear PIN on error
-      setPin("");
-      setMsg(data?.message || "Wrong phone or PIN.");
-      // Focus PIN field again
-      const pinInput = document.getElementById("pin-input") as HTMLInputElement | null;
-      pinInput?.focus();
+    let local = normalizeLocalPhone(phone);
+    if (local.length !== 9) {
+      setMsg("Enter valid phone number.");
       return;
     }
 
-    if (data?.user?.id) {
-      localStorage.setItem("fouron4_user_id", data.user.id);
-    }
-    if (data?.accessToken) {
-      localStorage.setItem("fouron4_access", data.accessToken);
-    }
-    if (data?.refreshToken) {
-      localStorage.setItem("fouron4_refresh", data.refreshToken);
+    const fullPhone = `+254${local}`;
+
+    setLoading(true);
+    const { ok, data } = await loginUser(fullPhone, pin);
+    setLoading(false);
+
+    if (!ok) {
+      setMsg(data?.message || "Incorrect phone or PIN.");
+      return;
     }
 
     router.push("/user/dashboard");
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-white text-black px-4"
-      style={{ fontFamily: 'Candara, "Candara Light", system-ui, sans-serif' }}
-    >
-      <div className="w-full max-w-md bg-white/95 border border-black/20 rounded-2xl shadow-sm px-6 py-8 md:px-8 md:py-10 transition-transform duration-150 hover:-translate-y-0.5">
-        <div className="text-center mb-6">
-          <div className="text-3xl font-extrabold tracking-wide mb-2">
-            4ON4
-          </div>
-          <span className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold tracking-wide">
-            DRIVER ACCOUNT
-          </span>
-        </div>
-
-        <h1 className="text-xl font-semibold text-center mb-4">
-          Log In
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-full max-w-md p-6 border rounded-xl shadow-sm">
+        <h1 className="text-xl font-semibold text-center mb-4">Login</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* PHONE NUMBER */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Phone Number
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-2 border border-black/30 rounded-md bg-white text-sm">
-                +254
-              </span>
-              <input
-                type="tel"
-                inputMode="numeric"
-                maxLength={10}
-                className="flex-1 border border-black/30 rounded-md px-3 py-2 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-black/70 focus:border-black"
-                placeholder="7xxxxxxxx or 1xxxxxxxx"
-                value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value.replace(/\D/g, ""))
-                }
-              />
-            </div>
+            <label className="block text-sm font-medium mb-1">Phone</label>
+            <input
+              type="text"
+              maxLength={10}
+              className="w-full border px-3 py-2 rounded-md"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
           </div>
 
-          {/* PIN (single field, show/hide) */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              PIN
-            </label>
-            <div className="flex items-center border border-black/30 rounded-md bg-white px-3 py-2">
-              <input
-                id="pin-input"
-                type={showPin ? "text" : "password"}
-                inputMode="numeric"
-                maxLength={4}
-                className="flex-1 bg-transparent outline-none text-sm tracking-[0.5em]"
-                placeholder="••••"
-                value={pin}
-                onChange={(e) =>
-                  setPin(e.target.value.replace(/\D/g, ""))
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setShowPin((prev) => !prev)}
-                className="ml-2 text-xs text-gray-600 hover:text-black"
-              >
-                {showPin ? "Hide" : "Show"}
-              </button>
-            </div>
+            <label className="block text-sm font-medium mb-1">PIN</label>
+            <input
+              type="password"
+              maxLength={4}
+              className="w-full border px-3 py-2 rounded-md"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+            />
           </div>
 
-          {msg && (
-            <p className="text-center text-sm text-red-600 leading-snug">
-              {msg}
-            </p>
-          )}
+          {msg && <p className="text-red-600 text-center text-sm">{msg}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-2.5 rounded-md bg-black text-white text-sm font-semibold tracking-wide disabled:opacity-60 disabled:cursor-not-allowed transition-transform duration-150 hover:-translate-y-0.5"
+            className="w-full py-2 bg-black text-white rounded-md"
           >
-            {loading ? "Logging in..." : "Log In"}
+            {loading ? "Checking..." : "Login"}
           </button>
+
+          <p className="text-center text-xs mt-2">
+            Forgot PIN?{" "}
+            <a href="/user/auth/forgot-pin" className="text-blue-600">
+              Reset here
+            </a>
+          </p>
         </form>
-
-        <p className="mt-5 text-center text-xs">
-          Forgot PIN?{" "}
-          <a
-            href="/user/auth/forgot-pin"
-            className="text-blue-700 hover:underline"
-          >
-            Reset PIN
-          </a>
-        </p>
-
-        <p className="mt-2 text-center text-xs">
-          Don’t have an account?{" "}
-          <a
-            href="/user/auth/register"
-            className="text-blue-700 hover:underline"
-          >
-            Create Account
-          </a>
-        </p>
       </div>
     </div>
   );
