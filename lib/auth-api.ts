@@ -1,107 +1,48 @@
 // lib/auth-api.ts
 
-import { BASE_URL } from "./api";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://fouron4-backend-1.onrender.com";
 
-// Generic helper for JSON POST requests to backend auth routes
-export async function postAuth(path: string, body: any) {
+// 👉 Helper function for POST requests
+async function post(endpoint: string, body: any) {
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json();
     return { ok: res.ok, data };
-  } catch (err) {
-    console.error("Auth POST error:", err);
+  } catch (error) {
     return { ok: false, data: { message: "Network error" } };
   }
 }
 
-/* =============================
-   AUTH FLOWS
-   (some legacy, some Twilio)
-   ============================= */
+// ====================================================================
+// 📌 AUTH FUNCTIONS (USED BY REGISTER, LOGIN, FORGOT PIN, RESET PIN)
+// ====================================================================
 
-// ⚠️ These may be legacy email-based flows. They won't break anything
-// even if unused, but you can clean them up later.
-
-// 1) Legacy: Start registration — send email OTP
-export function startRegister(email: string) {
-  return postAuth("/api/auth/register-start", { email });
+// 1️⃣ Start OTP (register or reset)
+export async function startVerify(phone: string, mode: "register" | "reset") {
+  return post("/api/auth/verify/start", { phone, mode });
 }
 
-// 2) Legacy: Verify email OTP
-export function verifyEmailCode(email: string, code: string) {
-  return postAuth("/api/auth/verify-email-code", { email, code });
+// 2️⃣ Check OTP (register or reset)
+export async function checkVerify(phone: string, code: string, mode: "register" | "reset") {
+  return post("/api/auth/verify/check", { phone, code, mode });
 }
 
-// 3) Legacy: Complete registration with email + phone + pin
-export function completeRegisterLegacy(payload: any) {
-  return postAuth("/api/auth/register-complete", payload);
+// 3️⃣ Complete registration
+export async function completeRegister(token: string, pin: string, pinConfirm: string) {
+  return post("/api/auth/register-complete", { token, pin, pinConfirm });
 }
 
-/* =============================
-   TWILIO / PHONE-ONLY FLOWS
-   ============================= */
-
-// Start Twilio verification (phone) for REGISTER
-export function startPhoneRegister(phone: string) {
-  return postAuth("/api/auth/verify/start", {
-    phone,
-    mode: "register",
-  });
+// 4️⃣ Login
+export async function loginUser(phone: string, pin: string) {
+  return post("/api/auth/login", { phone, pin });
 }
 
-// Start Twilio verification (phone) for RESET
-export function startPhoneReset(phone: string) {
-  return postAuth("/api/auth/verify/start", {
-    phone,
-    mode: "reset",
-  });
-}
-
-// Check Twilio verification code (shared for register + reset)
-export function checkPhoneOtp(
-  phone: string,
-  code: string,
-  mode: "register" | "reset"
-) {
-  return postAuth("/api/auth/verify/check", {
-    phone,
-    code,
-    mode,
-  });
-}
-
-// New: complete registration after Twilio OTP (set PIN)
-export function completeRegister(
-  token: string,
-  pin: string,
-  confirmPin: string
-) {
-  return postAuth("/api/auth/register-complete", {
-    token,
-    pin,
-    confirmPin,
-  });
-}
-
-// ✅ LOGIN: this is the critical fix: send { phone, pin }
-export function login(phone: string, pin: string) {
-  return postAuth("/api/auth/login", { phone, pin });
-}
-
-// Reset PIN after Twilio OTP
-export function resetPinComplete(
-  token: string,
-  pin: string,
-  confirmPin: string
-) {
-  return postAuth("/api/auth/reset-pin-complete", {
-    token,
-    pin,
-    confirmPin,
-  });
+// 5️⃣ Reset PIN (after OTP)
+export async function resetPinComplete(resetToken: string, pin: string, pinConfirm: string) {
+  return post("/api/auth/reset-pin-complete", { resetToken, pin, pinConfirm });
 }
