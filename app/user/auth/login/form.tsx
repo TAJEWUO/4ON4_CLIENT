@@ -31,7 +31,7 @@ export default function LoginForm() {
     }
 
     let cleaned = normalizeLocalPhone(phone);
-    if (cleaned.length < 9 || cleaned.length > 9) {
+    if (cleaned.length < 9 || cleaned.length > 10) {
       setMsg("Enter a valid phone number.");
       return;
     }
