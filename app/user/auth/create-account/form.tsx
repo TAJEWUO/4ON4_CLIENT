@@ -1,4 +1,3 @@
-// app/user/auth/create-account/form.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -10,26 +9,33 @@ const PIN_LENGTH = 4;
 export default function CreateAccountForm() {
   const router = useRouter();
 
-  const [phoneLocal, setPhoneLocal] = useState<string | null>(null);
+  const [storedPhone, setStoredPhone] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+
   const [pin, setPin] = useState<string[]>(Array(PIN_LENGTH).fill(""));
   const [pinConfirm, setPinConfirm] = useState<string[]>(
     Array(PIN_LENGTH).fill("")
   );
+
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
+  /* ---------------------------------------------------------
+     LOAD PHONE + TOKEN FROM localStorage
+  --------------------------------------------------------- */
   useEffect(() => {
-    const storedPhone = localStorage.getItem("fouron4_auth_phone");
-    const storedToken = localStorage.getItem("fouron4_register_token");
-    setPhoneLocal(storedPhone);
-    setToken(storedToken);
+    setStoredPhone(localStorage.getItem("fouron4_auth_phone"));
+    setToken(localStorage.getItem("fouron4_register_token"));
   }, []);
 
+  /* ---------------------------------------------------------
+     HANDLERS FOR PIN INPUT
+  --------------------------------------------------------- */
   const handlePinChange =
-    (list: string[], setter: (v: string[]) => void) =>
+    (list: string[], setter: (val: string[]) => void) =>
     (index: number, value: string, idPrefix: string) => {
       if (!/^\d?$/.test(value)) return;
+
       const updated = [...list];
       updated[index] = value;
       setter(updated);
@@ -53,6 +59,9 @@ export default function CreateAccountForm() {
       }
     };
 
+  /* ---------------------------------------------------------
+     SUBMIT → CALL BACKEND: /api/auth/register-complete
+  --------------------------------------------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
@@ -62,21 +71,23 @@ export default function CreateAccountForm() {
       return;
     }
 
-    const fullPin = pin.join("");
-    const fullPinConfirm = pinConfirm.join("");
+    const newPIN = pin.join("");
+    const confirmPIN = pinConfirm.join("");
 
-    if (fullPin.length !== PIN_LENGTH) {
+    if (newPIN.length !== PIN_LENGTH) {
       setMsg("PIN must be 4 digits.");
       return;
     }
 
-    if (fullPin !== fullPinConfirm) {
+    if (newPIN !== confirmPIN) {
       setMsg("PINs do not match.");
       return;
     }
 
     setLoading(true);
-    const { ok, data } = await completeRegister(token, fullPin, fullPinConfirm);
+
+    const { ok, data } = await completeRegister(token, newPIN, confirmPIN);
+
     setLoading(false);
 
     if (!ok) {
@@ -84,11 +95,12 @@ export default function CreateAccountForm() {
       return;
     }
 
+    // save user id
     if (data?.user?.id) {
       localStorage.setItem("fouron4_user_id", data.user.id);
     }
 
-    // clear temp
+    // CLEAN UP
     localStorage.removeItem("fouron4_auth_phone");
     localStorage.removeItem("fouron4_register_token");
     localStorage.removeItem("fouron4_auth_mode");
@@ -102,6 +114,7 @@ export default function CreateAccountForm() {
       style={{ fontFamily: 'Candara, "Candara Light", system-ui, sans-serif' }}
     >
       <div className="w-full max-w-md bg-white/95 border border-black/20 rounded-2xl shadow-sm px-6 py-8 md:px-8 md:py-10 transition-transform duration-150 hover:-translate-y-0.5">
+        {/* HEADER */}
         <div className="text-center mb-5">
           <div className="text-3xl font-extrabold tracking-wide mb-2">
             4ON4
@@ -115,15 +128,17 @@ export default function CreateAccountForm() {
           Create Account
         </h1>
 
-        {phoneLocal && (
+        {/* SHOW PHONE */}
+        {storedPhone && (
           <p className="text-center text-xs text-gray-600 mb-4">
             Phone:{" "}
             <span className="font-semibold">
-              +254 {phoneLocal.replace(/\D/g, "").slice(-9)}
+              +254 {storedPhone.replace(/\D/g, "").slice(-9)}
             </span>
           </p>
         )}
 
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* PIN */}
           <div>
@@ -155,7 +170,7 @@ export default function CreateAccountForm() {
             </div>
           </div>
 
-          {/* Confirm PIN */}
+          {/* CONFIRM PIN */}
           <div>
             <label className="block text-sm font-medium mb-1">
               Confirm PIN
@@ -178,22 +193,24 @@ export default function CreateAccountForm() {
                     )
                   }
                   onKeyDown={(e) =>
-                    handlePinKeyDown(
-                      pinConfirm,
-                      "create-pin-confirm"
-                    )(index, e)
+                    handlePinKeyDown(pinConfirm, "create-pin-confirm")(
+                      index,
+                      e
+                    )
                   }
                 />
               ))}
             </div>
           </div>
 
+          {/* ERROR */}
           {msg && (
             <p className="text-center text-sm text-red-600 leading-snug">
               {msg}
             </p>
           )}
 
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
@@ -202,6 +219,7 @@ export default function CreateAccountForm() {
             {loading ? "Creating..." : "Create Account"}
           </button>
 
+          {/* BACK TO LOGIN */}
           <p className="text-center text-xs mt-3">
             Already have an account?{" "}
             <a href="/user/auth/login" className="text-blue-700 hover:underline">
