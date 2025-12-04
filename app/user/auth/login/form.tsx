@@ -90,7 +90,8 @@ export default function LoginForm() {
               <input
                 type="text"
                 inputMode="numeric"
-                maxLength={9}
+                minLength={9}
+                maxLength={10}
                 className="flex-1 pl-3 text-black bg-transparent outline-none"
                 value={phone}
                 onChange={(e) =>
