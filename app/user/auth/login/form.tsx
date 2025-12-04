@@ -64,7 +64,7 @@ export default function LoginForm() {
         </h1>
 
         {/* DRIVER TAG */}
-        <span className="px-4 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium tracking-wide mb-6">
+        <span className="px-4 py-1 rounded-full bg-green-100 text-white-700 text-xs font-medium tracking-wide mb-6">
           DRIVER ACCOUNT
         </span>
 
@@ -96,7 +96,7 @@ export default function LoginForm() {
                 onChange={(e) =>
                   setPhone(e.target.value.replace(/\D/g, ""))
                 }
-                placeholder="7XXXXXXXX"
+                placeholder=""
               />
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function LoginForm() {
                 onChange={(e) =>
                   setPin(e.target.value.replace(/\D/g, ""))
                 }
-                placeholder="••••"
+                placeholder=""
               />
 
               <div
