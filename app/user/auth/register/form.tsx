@@ -3,11 +3,24 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { startRegister } from "@/lib/auth-api";
+import { startVerify } from "@/lib/auth-api";
+
+function normalizeLocalPhone(value: string) {
+  // only allow digits and treat 07 / 01 / 7 / 1
+  const digits = value.replace(/\D/g, "");
+  if (digits.startsWith("07") || digits.startsWith("01")) {
+    return digits.slice(0, 10);
+  }
+  if (digits.startsWith("7") || digits.startsWith("1")) {
+    // no leading 0, just 9 digits
+    return digits.slice(0, 9);
+  }
+  return digits.slice(0, 10);
+}
 
 export default function RegisterForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,13 +28,15 @@ export default function RegisterForm() {
     e.preventDefault();
     setMsg("");
 
-    if (!email || !email.includes("@")) {
-      setMsg("Enter a valid email address.");
+    const cleaned = normalizeLocalPhone(phone);
+
+    if (cleaned.length < 9) {
+      setMsg("Enter a valid Kenyan phone (07.. / 01.. / 7.. / 1..)");
       return;
     }
 
     setLoading(true);
-    const { ok, data } = await startRegister(email);
+    const { ok, data } = await startVerify(cleaned, "register");
     setLoading(false);
 
     if (!ok) {
@@ -29,8 +44,9 @@ export default function RegisterForm() {
       return;
     }
 
-    // Save email for verify-otp & create-account
-    localStorage.setItem("fouron4_auth_email", email);
+    // Save phone for verify-otp + create-account
+    localStorage.setItem("fouron4_auth_phone", cleaned);
+    localStorage.setItem("fouron4_auth_mode", "register");
 
     router.push("/user/auth/verify-otp");
   };
@@ -51,19 +67,28 @@ export default function RegisterForm() {
         </div>
 
         <h1 className="text-xl font-semibold text-center mb-4">
-          Register - Email
+          Register - Phone
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1">Enter Email</label>
-            <div className="border border-black/30 rounded-md bg-white/90 px-3 py-2">
+            <label className="block text-sm font-medium mb-1">
+              Enter Phone Number
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-2 border border-black/30 rounded-md bg-white/80 text-sm">
+                +254
+              </span>
               <input
-                type="email"
-                className="w-full bg-transparent outline-none text-sm"
-                placeholder="example@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value.trim())}
+                type="tel"
+                inputMode="numeric"
+                className="flex-1 border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none focus:ring-2 focus:ring-black/70 focus:border-black text-sm tracking-wide"
+                placeholder="7xxxxxxxx or 1xxxxxxxx"
+                value={phone}
+                maxLength={10}
+                onChange={(e) =>
+                  setPhone(normalizeLocalPhone(e.target.value))
+                }
               />
             </div>
           </div>

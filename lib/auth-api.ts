@@ -2,8 +2,13 @@
 
 import { BASE_URL } from "./api";
 
-// Helper for JSON POST requests
-export async function postAuth(path: string, body: any) {
+export type ApiResult<T = any> = {
+  ok: boolean;
+  data: T;
+};
+
+// Base helper
+export async function postAuth(path: string, body: any): Promise<ApiResult> {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method: "POST",
@@ -19,40 +24,50 @@ export async function postAuth(path: string, body: any) {
   }
 }
 
-/* ======================================
-   AUTH CORE FLOW (REGISTER + VERIFY)
-====================================== */
+// =============================
+// TWILIO PHONE FLOWS
+// =============================
 
-// 1) Register-start (send OTP)
-export function startRegister(email: string) {
-  return postAuth("/api/auth/register-start", { email });
+// start OTP (register or reset)
+export function startVerify(phone: string, mode: "register" | "reset") {
+  return postAuth("/api/auth/verify/start", { phone, mode });
 }
 
-// 2) Verify email OTP
-export function verifyEmailCode(email: string, code: string) {
-  return postAuth("/api/auth/verify-email-code", { email, code });
+// check OTP
+export function checkVerify(
+  phone: string,
+  code: string,
+  mode: "register" | "reset"
+) {
+  return postAuth("/api/auth/verify/check", { phone, code, mode });
 }
 
-// 3) Complete registration
-export function completeRegister(payload: any) {
-  return postAuth("/api/auth/register-complete", payload);
-}
-
-// 4) Login
-export function login(phone: string, pin: string) {
-  return postAuth("/api/auth/login", { phone, password: pin });
-}
-
-// 5) Forgot PIN
-export function forgotPin(email: string) {
-  return postAuth("/api/auth/reset-start", { email });
-}
-
-// 6) Reset PIN
-export function resetPin(token: string, pin: string, confirmPin: string) {
-  return postAuth("/api/auth/reset-complete", {
+// finish registration (set PIN)
+export function completeRegister(token: string, pin: string, confirmPin: string) {
+  return postAuth("/api/auth/register-complete", {
     token,
-    password: pin,
-    confirmPassword: confirmPin,
+    pin,
+    confirmPin,
+  });
+}
+
+// login
+export function login(phone: string, pin: string) {
+  return postAuth("/api/auth/login", {
+    phone,
+    pin,
+  });
+}
+
+// reset PIN complete
+export function resetPinComplete(
+  token: string,
+  pin: string,
+  confirmPin: string
+) {
+  return postAuth("/api/auth/reset-pin-complete", {
+    token,
+    pin,
+    confirmPin,
   });
 }

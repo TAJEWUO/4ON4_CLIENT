@@ -10,10 +10,8 @@ const PIN_LENGTH = 4;
 export default function CreateAccountForm() {
   const router = useRouter();
 
-  const [email, setEmail] = useState<string | null>(null);
+  const [phoneLocal, setPhoneLocal] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [phoneInput, setPhoneInput] = useState("");
-  const [phoneConfirmInput, setPhoneConfirmInput] = useState("");
   const [pin, setPin] = useState<string[]>(Array(PIN_LENGTH).fill(""));
   const [pinConfirm, setPinConfirm] = useState<string[]>(
     Array(PIN_LENGTH).fill("")
@@ -22,21 +20,11 @@ export default function CreateAccountForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem("fouron4_auth_email");
+    const storedPhone = localStorage.getItem("fouron4_auth_phone");
     const storedToken = localStorage.getItem("fouron4_register_token");
-    setEmail(storedEmail);
+    setPhoneLocal(storedPhone);
     setToken(storedToken);
   }, []);
-
-  const normalizePhone = (raw: string) => {
-    const digits = raw.replace(/\D/g, "");
-    if (digits.startsWith("07") || digits.startsWith("01")) {
-      return digits.slice(0, 10);
-    }
-    if (digits.startsWith("7")) return "07" + digits.slice(1, 9);
-    if (digits.startsWith("1")) return "01" + digits.slice(1, 9);
-    return digits.slice(0, 10);
-  };
 
   const handlePinChange =
     (list: string[], setter: (v: string[]) => void) =>
@@ -69,21 +57,8 @@ export default function CreateAccountForm() {
     e.preventDefault();
     setMsg("");
 
-    if (!email || !token) {
+    if (!token) {
       setMsg("Missing verification. Start again from Register.");
-      return;
-    }
-
-    const fixedPhone = normalizePhone(phoneInput);
-    const fixedConfirm = normalizePhone(phoneConfirmInput);
-
-    if (fixedPhone.length !== 10) {
-      setMsg("Enter a valid Kenyan phone number (07.. or 01..).");
-      return;
-    }
-
-    if (fixedPhone !== fixedConfirm) {
-      setMsg("Phone numbers do not match.");
       return;
     }
 
@@ -101,24 +76,11 @@ export default function CreateAccountForm() {
     }
 
     setLoading(true);
-
-    const { ok, data } = await completeRegister({
-      token,
-      phone: fixedPhone,
-      pin: fullPin,
-      confirmPin: fullPinConfirm,
-    });
-
+    const { ok, data } = await completeRegister(token, fullPin, fullPinConfirm);
     setLoading(false);
 
     if (!ok) {
-      if (data?.code === "USER_EXISTS") {
-        setMsg(
-          "User available. Please log in with this phone number instead."
-        );
-      } else {
-        setMsg(data?.message || "Failed to create account.");
-      }
+      setMsg(data?.message || "Failed to create account.");
       return;
     }
 
@@ -126,9 +88,10 @@ export default function CreateAccountForm() {
       localStorage.setItem("fouron4_user_id", data.user.id);
     }
 
-    // clear temp auth info
-    localStorage.removeItem("fouron4_auth_email");
+    // clear temp
+    localStorage.removeItem("fouron4_auth_phone");
     localStorage.removeItem("fouron4_register_token");
+    localStorage.removeItem("fouron4_auth_mode");
 
     router.push("/user/auth/login");
   };
@@ -152,61 +115,16 @@ export default function CreateAccountForm() {
           Create Account
         </h1>
 
-        {email && (
+        {phoneLocal && (
           <p className="text-center text-xs text-gray-600 mb-4">
-            Linked email: <span className="font-semibold">{email}</span>
+            Phone:{" "}
+            <span className="font-semibold">
+              +254 {phoneLocal.replace(/\D/g, "").slice(-9)}
+            </span>
           </p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Enter New Phone No.
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-2 border border-black/30 rounded-md bg-white/80 text-sm">
-                +254
-              </span>
-              <input
-                type="tel"
-                inputMode="numeric"
-                className="flex-1 border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none focus:ring-2 focus:ring-black/70 focus:border-black text-sm tracking-wide"
-                placeholder="7xxxxxxxx or 1xxxxxxxx"
-                value={phoneInput}
-                maxLength={10}
-                onChange={(e) =>
-                  setPhoneInput(e.target.value.replace(/\D/g, ""))
-                }
-                required
-              />
-            </div>
-          </div>
-
-          {/* Confirm Phone */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Confirm Phone No.
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-2 border border-black/30 rounded-md bg-white/80 text-sm">
-                +254
-              </span>
-              <input
-                type="tel"
-                inputMode="numeric"
-                className="flex-1 border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none focus:ring-2 focus:ring-black/70 focus:border-black text-sm tracking-wide"
-                placeholder="Must match phone number"
-                value={phoneConfirmInput}
-                maxLength={10}
-                onChange={(e) =>
-                  setPhoneConfirmInput(e.target.value.replace(/\D/g, ""))
-                }
-                required
-              />
-            </div>
-          </div>
-
           {/* PIN */}
           <div>
             <label className="block text-sm font-medium mb-1">

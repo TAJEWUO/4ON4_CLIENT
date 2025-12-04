@@ -3,21 +3,28 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { verifyEmailCode } from "@/lib/auth-api";
+import { checkVerify } from "@/lib/auth-api";
 
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_SECONDS = 120;
 
 export default function VerifyOtpForm() {
   const router = useRouter();
-  const [email, setEmail] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null>(null);
+  const [mode, setMode] = useState<"register" | "reset">("register");
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(OTP_EXPIRY_SECONDS);
 
   useEffect(() => {
-    setEmail(localStorage.getItem("fouron4_auth_email"));
+    const storedPhone = localStorage.getItem("fouron4_auth_phone");
+    const storedMode =
+      (localStorage.getItem("fouron4_auth_mode") as "register" | "reset") ||
+      "register";
+
+    setPhone(storedPhone);
+    setMode(storedMode);
   }, []);
 
   useEffect(() => {
@@ -36,14 +43,21 @@ export default function VerifyOtpForm() {
     setOtp(updated);
 
     if (value && index < OTP_LENGTH - 1) {
-      const next = document.getElementById(`otp-${index + 1}`) as HTMLInputElement | null;
+      const next = document.getElementById(
+        `otp-${index + 1}`
+      ) as HTMLInputElement | null;
       next?.focus();
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      const prev = document.getElementById(`otp-${index - 1}`) as HTMLInputElement | null;
+      const prev = document.getElementById(
+        `otp-${index - 1}`
+      ) as HTMLInputElement | null;
       prev?.focus();
     }
   };
@@ -52,8 +66,8 @@ export default function VerifyOtpForm() {
     e.preventDefault();
     setMsg("");
 
-    if (!email) {
-      setMsg("Missing email context. Start again from Register.");
+    if (!phone) {
+      setMsg("Missing phone. Start again from Register / Forgot PIN.");
       return;
     }
 
@@ -69,7 +83,7 @@ export default function VerifyOtpForm() {
     }
 
     setLoading(true);
-    const { ok, data } = await verifyEmailCode(email, code);
+    const { ok, data } = await checkVerify(phone, code, mode);
     setLoading(false);
 
     if (!ok) {
@@ -77,11 +91,27 @@ export default function VerifyOtpForm() {
       return;
     }
 
-    if (data?.token) {
-      localStorage.setItem("fouron4_register_token", data.token);
-    }
+    if (mode === "register") {
+      if (data?.token) {
+        localStorage.setItem("fouron4_register_token", data.token);
+      }
 
-    router.push("/user/auth/create-account");
+      // we may also store normalized phone if backend sends it
+      if (data?.phone) {
+        localStorage.setItem("fouron4_auth_phone_normalized", data.phone);
+      }
+
+      router.push("/user/auth/create-account");
+    } else {
+      // reset flow (phase 3, later)
+      if (data?.resetToken) {
+        localStorage.setItem("fouron4_reset_token", data.resetToken);
+      }
+      if (data?.phone) {
+        localStorage.setItem("fouron4_reset_phone", data.phone);
+      }
+      router.push("/user/auth/reset-pin");
+    }
   };
 
   const minutes = Math.floor(secondsLeft / 60);
@@ -102,11 +132,16 @@ export default function VerifyOtpForm() {
           </span>
         </div>
 
-        <h1 className="text-xl font-semibold text-center mb-2">Verify OTP</h1>
+        <h1 className="text-xl font-semibold text-center mb-2">
+          Verify OTP
+        </h1>
 
-        {email && (
+        {phone && (
           <p className="text-center text-xs text-gray-600 mb-4">
-            Code sent to <span className="font-semibold">{email}</span>
+            Code sent to{" "}
+            <span className="font-semibold">
+              +254 {phone.replace(/\D/g, "").slice(-9)}
+            </span>
           </p>
         )}
 
@@ -150,8 +185,11 @@ export default function VerifyOtpForm() {
         </form>
 
         <p className="mt-5 text-center text-xs">
-          Wrong email?{" "}
-          <a href="/user/auth/register" className="text-blue-700 hover:underline">
+          Wrong phone?{" "}
+          <a
+            href="/user/auth/register"
+            className="text-blue-700 hover:underline"
+          >
             Start again
           </a>
         </p>
