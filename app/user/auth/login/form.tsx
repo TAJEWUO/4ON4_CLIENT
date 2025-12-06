@@ -13,6 +13,7 @@ export default function LoginForm() {
   const [showPin, setShowPin] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   // Normalize phone like your previous logic
   const normalizeLocalPhone = (value: string) => {
@@ -31,7 +32,7 @@ export default function LoginForm() {
     }
 
     let cleaned = normalizeLocalPhone(phone);
-    if (cleaned.length < 9 || cleaned.length > 10) {
+    if (cleaned.length < 9 || cleaned.length > 9) {
       setMsg("Enter a valid phone number.");
       return;
     }
@@ -47,15 +48,28 @@ export default function LoginForm() {
       return;
     }
 
-    router.push("/user/dashboard");
+    // show redirect animation
+    setRedirecting(true);
+
+    setTimeout(() => {
+      router.push("/user/dashboard");
+    }, 1500);
   };
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-4"
+      className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-4 relative"
       style={{ fontFamily: 'Candara, "Candara Light", system-ui, sans-serif' }}
     >
-      {/* CONTAINER */}
+      {/* REDIRECT OVERLAY */}
+      {redirecting && (
+        <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
+          <div className="animate-spin h-10 w-10 border-4 border-black border-t-transparent rounded-full mb-4"></div>
+          <p className="text-black text-sm tracking-wide">Logging you in...</p>
+        </div>
+      )}
+
+      {/* MAIN CONTAINER */}
       <div className="w-full max-w-md bg-white border border-black/10 rounded-2xl shadow-sm px-8 py-10 flex flex-col items-center">
 
         {/* LOGO */}
@@ -64,7 +78,7 @@ export default function LoginForm() {
         </h1>
 
         {/* DRIVER TAG */}
-        <span className="px-4 py-1 rounded-full bg-green-100 text-white-700 text-xs font-medium tracking-wide mb-6">
+        <span className="px-4 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium tracking-wide mb-6">
           DRIVER ACCOUNT
         </span>
 
@@ -90,14 +104,13 @@ export default function LoginForm() {
               <input
                 type="text"
                 inputMode="numeric"
-                minLength={9}
-                maxLength={10}
+                maxLength={9}
                 className="flex-1 pl-3 text-black bg-transparent outline-none"
                 value={phone}
                 onChange={(e) =>
                   setPhone(e.target.value.replace(/\D/g, ""))
                 }
-                placeholder=""
+                placeholder="7XXXXXXXX"
               />
             </div>
           </div>
@@ -118,7 +131,7 @@ export default function LoginForm() {
                 onChange={(e) =>
                   setPin(e.target.value.replace(/\D/g, ""))
                 }
-                placeholder=""
+                placeholder="••••"
               />
 
               <div
@@ -143,9 +156,16 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-black text-white text-sm tracking-wide font-medium disabled:opacity-60"
+            className="w-full py-3 rounded-lg bg-black text-white text-sm tracking-wide font-medium disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            {loading ? "Checking..." : "Login"}
+            {loading ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                Checking...
+              </>
+            ) : (
+              "Login"
+            )}
           </button>
 
           {/* LINKS */}
@@ -166,7 +186,6 @@ export default function LoginForm() {
           </div>
 
         </form>
-
       </div>
 
       {/* FOOTER */}
