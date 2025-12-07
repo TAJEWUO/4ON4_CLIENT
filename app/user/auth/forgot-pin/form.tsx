@@ -91,7 +91,7 @@ export default function ForgotPinForm() {
               <input
                 type="tel"
                 inputMode="numeric"
-                maxLength={9}
+                maxLength={10}
                 className="flex-1 bg-transparent outline-none text-sm pl-3"
                 placeholder="7xx xxx xxx"
                 value={phone}
