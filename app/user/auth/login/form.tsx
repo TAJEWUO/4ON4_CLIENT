@@ -78,7 +78,7 @@ export default function LoginForm() {
                 className="flex-1 pl-3 bg-transparent outline-none text-black"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                placeholder="7XXXXXXXX or 1XXXXXXXX"
+                placeholder=""
               />
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function LoginForm() {
                 inputMode="numeric"
                 maxLength={4}
                 className="w-full bg-transparent outline-none text-lg tracking-widest"
-                placeholder="••••"
+                placeholder=""
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
               />
