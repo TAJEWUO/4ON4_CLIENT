@@ -7,6 +7,7 @@ import {
   apiDeleteVehicle,
   apiUpdateVehicle,
 } from "@/lib/api";
+
 import VehicleCard from "./ui/vehicle-card";
 import EditVehicleModal from "./ui/edit-vehicle-modal";
 
@@ -22,6 +23,9 @@ export default function MyVehicles({
   const [editOpen, setEditOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
 
+  // -----------------------------
+  // LISTEN FOR ADD VEHICLE TRIGGER
+  // -----------------------------
   useEffect(() => {
     function handleAddFromDashboard(e: any) {
       if (!e.detail) return;
@@ -29,6 +33,7 @@ export default function MyVehicles({
     }
 
     window.addEventListener("addVehicleFromDashboard", handleAddFromDashboard);
+
     return () =>
       window.removeEventListener(
         "addVehicleFromDashboard",
@@ -36,14 +41,22 @@ export default function MyVehicles({
       );
   }, [isLoggedIn]);
 
+  // -----------------------------
+  // REFRESH VEHICLES LIST
+  // -----------------------------
   const refreshVehicles = async () => {
     const userId = localStorage.getItem("fouron4_user_id");
     if (!userId) return;
 
-    const res = await apiGetVehicles(userId);
-    if (res.success) setVehicles(res.vehicles);
+    const { ok, data } = await apiGetVehicles(userId);
+    if (ok && data?.vehicles) {
+      setVehicles(data.vehicles);
+    }
   };
 
+  // -----------------------------
+  // ADD VEHICLE
+  // -----------------------------
   const handleAddVehicle = async (data: any) => {
     if (!isLoggedIn) return onLoginClick();
 
@@ -66,8 +79,8 @@ export default function MyVehicles({
         }
       }
 
-      const res = await apiUploadVehicle(form);
-      if (res.success) await refreshVehicles();
+      const { ok } = await apiUploadVehicle(form);
+      if (ok) await refreshVehicles();
     } catch (err) {
       console.log("Vehicle upload failed:", err);
     } finally {
@@ -75,19 +88,21 @@ export default function MyVehicles({
     }
   };
 
+  // -----------------------------
+  // DELETE VEHICLE
+  // -----------------------------
   const handleDeleteVehicle = async (vehicleId: string) => {
     if (!confirm("Delete this vehicle?")) return;
 
-    try {
-      const res = await apiDeleteVehicle(vehicleId);
-      if (res.success) {
-        setVehicles((list: any[]) => list.filter((v) => v._id !== vehicleId));
-      }
-    } catch (err) {
-      console.log("Delete vehicle failed:", err);
+    const { ok } = await apiDeleteVehicle(vehicleId);
+    if (ok) {
+      setVehicles((list: any[]) => list.filter((v) => v._id !== vehicleId));
     }
   };
 
+  // -----------------------------
+  // UPDATE VEHICLE
+  // -----------------------------
   const handleUpdateVehicle = async (data: any) => {
     if (!selectedVehicle) return;
 
@@ -104,13 +119,16 @@ export default function MyVehicles({
         }
       }
 
-      const res = await apiUpdateVehicle(selectedVehicle._id, form);
-      if (res.success) await refreshVehicles();
+      const { ok } = await apiUpdateVehicle(selectedVehicle._id, form);
+      if (ok) await refreshVehicles();
     } catch (err) {
       console.log("Update vehicle failed:", err);
     }
   };
 
+  // -----------------------------
+  // RENDER UI
+  // -----------------------------
   return (
     <div className="w-full">
       <h2 className="text-xl font-semibold mb-4">Your Vehicles</h2>
@@ -144,7 +162,7 @@ export default function MyVehicles({
               capacity={v.capacity || 0}
               windowType={(v.windowType as "glass" | "canvas") || "glass"}
               images={imageUrls}
-              onClick={() => {}} // REQUIRED FIX
+              onClick={() => {}}
               onEdit={() => {
                 setSelectedVehicle(v);
                 setEditOpen(true);
