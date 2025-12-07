@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/auth-api";
-import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -13,31 +12,28 @@ export default function LoginForm() {
   const [showPin, setShowPin] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
 
-  // Normalize phone like your previous logic
-  const normalizeLocalPhone = (value: string) => {
-    let v = value.replace(/\D/g, "");
-    if (v.startsWith("07") || v.startsWith("01")) v = v.slice(1);
-    return v;
+  const normalizePhone = (raw: string) => {
+    const digits = raw.replace(/\D/g, "");
+    const tail9 = digits.replace(/^0+/, "").slice(-9);
+    if (tail9.length !== 9) return null;
+    return "+254" + tail9;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
 
+    const fullPhone = normalizePhone(phone);
+    if (!fullPhone) {
+      setMsg("Enter a valid Kenyan phone number.");
+      return;
+    }
+
     if (pin.length !== 4) {
       setMsg("PIN must be 4 digits.");
       return;
     }
-
-    let cleaned = normalizeLocalPhone(phone);
-    if (cleaned.length < 9 || cleaned.length > 9) {
-      setMsg("Enter a valid phone number.");
-      return;
-    }
-
-    const fullPhone = "+254" + cleaned;
 
     setLoading(true);
     const { ok, data } = await loginUser(fullPhone, pin);
@@ -48,150 +44,86 @@ export default function LoginForm() {
       return;
     }
 
-    // show redirect animation
-    setRedirecting(true);
+    if (data?.user?.id) localStorage.setItem("fouron4_user_id", data.user.id);
+    if (data?.accessToken) localStorage.setItem("fouron4_access", data.accessToken);
+    if (data?.refreshToken) localStorage.setItem("fouron4_refresh", data.refreshToken);
 
-    setTimeout(() => {
-      router.push("/user/dashboard");
-    }, 1500);
+    router.push("/user/dashboard");
   };
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-4 relative"
+      className="min-h-screen flex items-center justify-center bg-white px-4"
       style={{ fontFamily: 'Candara, "Candara Light", system-ui, sans-serif' }}
     >
-      {/* REDIRECT OVERLAY */}
-      {redirecting && (
-        <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
-          <div className="animate-spin h-10 w-10 border-4 border-black border-t-transparent rounded-full mb-4"></div>
-          <p className="text-black text-sm tracking-wide">Logging you in...</p>
+      <div className="w-full max-w-md bg-white/95 border border-black/20 rounded-2xl shadow-sm px-6 py-8">
+        <div className="text-center mb-6">
+          <div className="text-3xl font-extrabold tracking-wide mb-2">4ON4</div>
+          <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold tracking-wide">
+            DRIVER ACCOUNT
+          </span>
         </div>
-      )}
 
-      {/* MAIN CONTAINER */}
-      <div className="w-full max-w-md bg-white border border-black/10 rounded-2xl shadow-sm px-8 py-10 flex flex-col items-center">
+        <h1 className="text-xl font-semibold text-center mb-4">Log In</h1>
 
-        {/* LOGO */}
-        <h1 className="text-4xl font-extrabold tracking-wide text-black mb-1">
-          4ON4
-        </h1>
-
-        {/* DRIVER TAG */}
-        <span className="px-4 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium tracking-wide mb-6">
-          DRIVER ACCOUNT
-        </span>
-
-        {/* TITLE */}
-        <h2 className="text-lg text-black mb-6 tracking-wide">
-          LOGIN TO YOUR ACCOUNT
-        </h2>
-
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="w-full space-y-6">
-
-          {/* PHONE INPUT */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm text-black/80 mb-1">
-              Enter Phone Number
-            </label>
-
+            <label className="block text-sm text-black/80 mb-1">Enter Phone Number</label>
             <div className="flex items-center border border-black/20 rounded-lg px-3 py-2 bg-white">
-              <span className="text-black/70 text-sm pr-2 border-r border-black/10">
-                +254
-              </span>
-
+              <span className="text-black/70 text-sm pr-2 border-r border-black/10">+254</span>
               <input
                 type="text"
                 inputMode="numeric"
-                maxLength={9}
-                className="flex-1 pl-3 text-black bg-transparent outline-none"
+                maxLength={10}
+                className="flex-1 pl-3 bg-transparent outline-none text-black"
                 value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="7XXXXXXXX"
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                placeholder="7XXXXXXXX or 1XXXXXXXX"
               />
             </div>
           </div>
 
-          {/* PIN INPUT */}
           <div>
-            <label className="block text-sm text-black/80 mb-1">
-              Enter PIN
-            </label>
-
+            <label className="block text-sm text-black/80 mb-1">Enter PIN</label>
             <div className="relative border border-black/20 rounded-lg px-3 py-2 bg-white">
               <input
                 type={showPin ? "text" : "password"}
                 inputMode="numeric"
                 maxLength={4}
-                className="w-full text-black bg-transparent outline-none tracking-widest text-lg"
-                value={pin}
-                onChange={(e) =>
-                  setPin(e.target.value.replace(/\D/g, ""))
-                }
+                className="w-full bg-transparent outline-none text-lg tracking-widest"
                 placeholder="••••"
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
               />
-
-              <div
-                onClick={() => setShowPin(!showPin)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-black cursor-pointer"
+              <button
+                type="button"
+                onClick={() => setShowPin((p) => !p)}
+                className="absolute right-3 top-2 text-xs text-gray-600 hover:text-black"
               >
-                {showPin ? (
-                  <EyeOff size={20} className="text-black/70" />
-                ) : (
-                  <Eye size={20} className="text-black/70" />
-                )}
-              </div>
+                {showPin ? "Hide" : "Show"}
+              </button>
             </div>
           </div>
 
-          {/* ERROR MESSAGE */}
-          {msg && (
-            <p className="text-center text-sm text-red-600">{msg}</p>
-          )}
+          {msg && <p className="text-center text-sm text-red-600">{msg}</p>}
 
-          {/* LOGIN BUTTON */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-black text-white text-sm tracking-wide font-medium disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-lg bg-black text-white text-sm tracking-wide font-medium disabled:opacity-60"
           >
-            {loading ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                Checking...
-              </>
-            ) : (
-              "Login"
-            )}
+            {loading ? "Checking..." : "Login"}
           </button>
-
-          {/* LINKS */}
-          <div className="text-center text-xs text-black/70 mt-1">
-            <a
-              href="/user/auth/forgot-pin"
-              className="text-blue-700 hover:underline"
-            >
-              Forgot PIN?
-            </a>{" "}
-            •{" "}
-            <a
-              href="/user/auth/register"
-              className="text-blue-700 hover:underline"
-            >
-              Create New Account
-            </a>
-          </div>
-
         </form>
-      </div>
 
-      {/* FOOTER */}
-      <p className="text-[10px] text-black/60 mt-8 tracking-wide text-center">
-        © {new Date().getFullYear()} 4ON4 GROUP LIMITED. All rights reserved.
-      </p>
+        <p className="mt-4 text-center text-xs">
+          Forgot PIN? <a href="/user/auth/forgot-pin" className="text-blue-700 underline">Reset PIN</a>
+        </p>
+
+        <p className="mt-2 text-center text-xs">
+          Don’t have an account? <a href="/user/auth/register" className="text-blue-700 underline">Create Account</a>
+        </p>
+      </div>
     </div>
   );
 }

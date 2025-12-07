@@ -1,48 +1,64 @@
 // lib/auth-api.ts
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://fouron4-backend-1.onrender.com";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://fouron4-backend-1.onrender.com";
 
-// 👉 Helper function for POST requests
-async function post(endpoint: string, body: any) {
+async function postAuth(path: string, body: any) {
   try {
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
+    const res = await fetch(`${API_URL}/api/auth${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
-    const data = await res.json();
-    return { ok: res.ok, data };
-  } catch (error) {
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) return { ok: false, data };
+    return { ok: true, data };
+  } catch (err) {
     return { ok: false, data: { message: "Network error" } };
   }
 }
 
-// ====================================================================
-// 📌 AUTH FUNCTIONS (USED BY REGISTER, LOGIN, FORGOT PIN, RESET PIN)
-// ====================================================================
-
-// 1️⃣ Start OTP (register or reset)
-export async function startVerify(phone: string, mode: "register" | "reset") {
-  return post("/api/auth/verify/start", { phone, mode });
+/* ---------------------------------------------------
+   START VERIFY (OTP)
+--------------------------------------------------- */
+export async function startVerify(phone: string) {
+  return postAuth("/verify/start", { phone });
 }
 
-// 2️⃣ Check OTP (register or reset)
-export async function checkVerify(phone: string, code: string, mode: "register" | "reset") {
-  return post("/api/auth/verify/check", { phone, code, mode });
+/* ---------------------------------------------------
+   CHECK VERIFY (OTP)
+--------------------------------------------------- */
+export async function checkVerify(otp: string, token: string) {
+  return postAuth("/verify/check", { otp, token });
 }
 
-// 3️⃣ Complete registration
-export async function completeRegister(token: string, pin: string, pinConfirm: string) {
-  return post("/api/auth/register-complete", { token, pin, pinConfirm });
+/* ---------------------------------------------------
+   COMPLETE REGISTRATION   <— REQUIRED BY create-account
+--------------------------------------------------- */
+export async function completeRegister(
+  token: string,
+  pin: string,
+  confirmPin: string
+) {
+  return postAuth("/register-complete", { token, pin, confirmPin });
 }
 
-// 4️⃣ Login
+/* ---------------------------------------------------
+   LOGIN
+--------------------------------------------------- */
 export async function loginUser(phone: string, pin: string) {
-  return post("/api/auth/login", { phone, pin });
+  return postAuth("/login", { phone, pin });
 }
 
-// 5️⃣ Reset PIN (after OTP)
-export async function resetPinComplete(resetToken: string, pin: string, pinConfirm: string) {
-  return post("/api/auth/reset-pin-complete", { resetToken, pin, pinConfirm });
+/* ---------------------------------------------------
+   RESET PIN COMPLETE
+--------------------------------------------------- */
+export async function resetPinComplete(
+  token: string,
+  pin: string,
+  confirmPin: string
+) {
+  return postAuth("/reset-pin-complete", { token, pin, confirmPin });
 }

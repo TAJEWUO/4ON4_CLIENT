@@ -1,17 +1,6 @@
 // lib/api.ts
 
-// ==============================
-// BACKEND BASE URL (single source of truth)
-// ==============================
-//
-// In Vercel, set:
-//   NEXT_PUBLIC_BACKEND_URL = https://fouron4-backend-1.onrender.com
-//
-// In local .env.local, if you run backend locally:
-//   NEXT_PUBLIC_BACKEND_URL = http://localhost:3002
-//
-// If the env var is missing, we fall back to localhost:3002.
-
+// Single source of truth for backend base URL
 export const BASE_URL: string =
   (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3002").replace(
     /\/+$/,
@@ -25,9 +14,7 @@ async function jsonFetch(url: string, options: RequestInit) {
   return { res, data };
 }
 
-// ==============================
-// IMAGE URL BUILDER
-// ==============================
+// IMAGE builder
 export function buildImageUrl(path?: string | null): string {
   if (!path) return "/placeholder.svg";
 
@@ -47,107 +34,10 @@ export function buildImageUrl(path?: string | null): string {
   return `${BASE_URL}/${cleaned}`;
 }
 
-// ===================================================
-// LEGACY AUTH HELPERS (only used in some places)
-// ===================================================
-
-export async function apiRegister(data: any) {
-  const { data: json } = await jsonFetch(`${BASE_URL}/api/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return json;
-}
-
-export async function apiLogin(identifier: string, password: string) {
-  const { data: json } = await jsonFetch(`${BASE_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ identifier, password }),
-  });
-  return json;
-}
-
-export async function apiResetPassword(
-  identifier: string,
-  newPassword: string
-) {
-  const { data: json } = await jsonFetch(
-    `${BASE_URL}/api/auth/reset-password`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, newPassword }),
-    }
-  );
-  return json;
-}
-
-// ===================================================
-// PROFILE
-// ===================================================
-
+// LEGACY helpers (only used in some places)
 export async function apiGetProfile(userId: string) {
-  const { data: json } = await jsonFetch(
-    `${BASE_URL}/api/user/profile/${userId}`,
-    {
-      method: "GET",
-    }
-  );
-  return json;
-}
-
-export async function apiUpdateProfile(userId: string, data: FormData) {
-  const { data: json } = await jsonFetch(
-    `${BASE_URL}/api/user/profile/${userId}`,
-    {
-      method: "PUT",
-      body: data,
-    }
-  );
-  return json;
-}
-
-// ===================================================
-// VEHICLES
-// ===================================================
-
-export async function apiUploadVehicle(formData: FormData) {
-  const { data: json } = await jsonFetch(`${BASE_URL}/api/vehicles/upload`, {
-    method: "POST",
-    body: formData,
+  const { data: json } = await jsonFetch(`${BASE_URL}/api/user/profile/${userId}`, {
+    method: "GET",
   });
-  return json;
-}
-
-export async function apiGetVehicles(userId: string) {
-  const { data: json } = await jsonFetch(
-    `${BASE_URL}/api/vehicles/${userId}`,
-    {
-      method: "GET",
-    }
-  );
-  return json;
-}
-
-export async function apiDeleteVehicle(vehicleId: string) {
-  const { data: json } = await jsonFetch(
-    `${BASE_URL}/api/vehicles/${vehicleId}`,
-    {
-      method: "DELETE",
-    }
-  );
-  return json;
-}
-
-export async function apiUpdateVehicle(vehicleId: string, data: FormData) {
-  const { data: json } = await jsonFetch(
-    `${BASE_URL}/api/vehicles/${vehicleId}`,
-    {
-      method: "PUT",
-      body: data,
-    }
-  );
   return json;
 }
