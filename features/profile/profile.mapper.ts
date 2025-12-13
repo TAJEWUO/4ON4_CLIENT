@@ -11,7 +11,7 @@ export function mapProfileFromApi(raw: any): Profile {
     lastName: raw.lastName ?? "",
     otherName: raw.otherName ?? "",
 
-    phoneNumber: raw.phone ?? raw.phoneNumber ?? "",
+    phone: raw.phone ?? raw.phoneNumber ?? "",
     age: Number(raw.age ?? 0),
 
     yearsOfExperience: Number(raw.yearsOfExperience ?? 0),
