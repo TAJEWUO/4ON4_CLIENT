@@ -1,114 +1,56 @@
+// app/user/dashboard/page.tsx
 "use client";
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-
-import UserHeader from "@/components/user-header";
-import SideMenu from "@/components/side-menu";
-import MyVehicles from "@/components/my-vehicles";
-import UserWidgets from "@/components/user-widgets";
-// ❌ REMOVED MySafaris import
-import UserFooter from "@/components/user-footer";
-
-import AddVehicleModal from "@/components/ui/add-vehicle-modal";
-
+import React, { useEffect, useState } from "react";
 import { apiGetProfile, apiGetVehicles } from "@/lib/api";
+import ProfileCard from "@/components/ProfileCard";
+import VehicleCard from "@/components/VehicleCard";
+import VehicleForm from "@/components/VehicleForm";
+import { getUserId } from "@/utils/storage";
 
-export default function UserDashboard() {
-  const router = useRouter();
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const [userProfile, setUserProfile] = useState<any>(null);
+export default function DashboardPage() {
+  const [profile, setProfile] = useState<any | null>(null);
   const [vehicles, setVehicles] = useState<any[]>([]);
-  const [safaris, setSafaris] = useState<any[]>([]);
+  const [showAdd, setShowAdd] = useState(false);
 
-  const [addVehicleOpen, setAddVehicleOpen] = useState(false);
+  useEffect(()=> {
+    const uid = getUserId();
+    if (!uid) return;
+    loadProfile(uid);
+    loadVehicles(uid);
+  },[]);
 
-  useEffect(() => {
-    function openModal() {
-      setAddVehicleOpen(true);
-    }
-    window.addEventListener("openAddVehicleModal", openModal);
-    return () => window.removeEventListener("openAddVehicleModal", openModal);
-  }, []);
+  async function loadProfile(uid: string) {
+    const { ok, data } = await apiGetProfile(uid);
+    if (ok) setProfile(data.profile || data);
+  }
 
-  useEffect(() => {
-    const load = async () => {
-      const userId = localStorage.getItem("fouron4_user_id");
-      if (!userId) {
-        router.push("/user/auth/login");
-        return;
-      }
-
-      setIsLoggedIn(true);
-
-      const p = await apiGetProfile(userId);
-      if (p.success) setUserProfile(p.user);
-
-      const v = await apiGetVehicles(userId);
-      if (v.success) setVehicles(v.vehicles);
-    };
-
-    load();
-  }, [router]);
-
-  const goToLogin = () => {
-    router.push("/user/auth/login");
-  };
+  async function loadVehicles(uid: string) {
+    const { ok, data } = await apiGetVehicles(uid);
+    if (ok) setVehicles(data.vehicles || data);
+  }
 
   return (
-    <div className="min-h-screen bg-white text-black flex flex-col">
-      <UserHeader
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        userName={
-          userProfile
-            ? `${userProfile.firstName || ""} ${userProfile.lastName || ""}`
-            : "User"
-        }
-        isLoggedIn={isLoggedIn}
-        onLoginClick={goToLogin}
-      />
-
-      <div className="flex flex-1">
-        {menuOpen && isLoggedIn && (
-          <SideMenu
-            onClose={() => setMenuOpen(false)}
-            userProfile={userProfile}
-            setUserProfile={setUserProfile}
-            vehicles={vehicles}
-            setVehicles={setVehicles}
-          />
-        )}
-
-        <main className="flex-1 p-6 md:p-8 space-y-6">
-          <MyVehicles
-            vehicles={vehicles}
-            setVehicles={setVehicles}
-            isLoggedIn={isLoggedIn}
-            onLoginClick={goToLogin}
-          />
-
-          <UserWidgets safaris={safaris} setSafaris={setSafaris} />
-
-          {/* ❌ MySafaris removed */}
-        </main>
+    <div className="p-4 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Dashboard</h1>
+        <button className="px-3 py-1 bg-black text-white rounded" onClick={()=>setShowAdd(s=>!s)}>
+          {showAdd ? "Close" : "Add Vehicle"}
+        </button>
       </div>
 
-      <UserFooter />
+      <section className="mt-6">
+        <h2 className="text-lg font-medium">Profile</h2>
+        <ProfileCard profile={profile} onReload={()=>{ const uid=getUserId(); if(uid) loadProfile(uid); }} />
+      </section>
 
-      <AddVehicleModal
-        open={addVehicleOpen}
-        onClose={() => setAddVehicleOpen(false)}
-        onSubmit={(data) => {
-          const event = new CustomEvent("addVehicleFromDashboard", {
-            detail: data,
-          });
-          window.dispatchEvent(event);
-        }}
-      />
+      <section className="mt-6">
+        <h2 className="text-lg font-medium">Your Vehicles</h2>
+        {showAdd && <VehicleForm onSaved={() => { const uid=getUserId(); if(uid) loadVehicles(uid); setShowAdd(false); }} />}
+        <div className="mt-4 space-y-3">
+          {vehicles.length === 0 && <p>No vehicles yet.</p>}
+          {vehicles.map(v => <VehicleCard key={v._id} vehicle={v} onDeleted={() => { const uid=getUserId(); if(uid) loadVehicles(uid); }} />)}
+        </div>
+      </section>
     </div>
   );
 }
