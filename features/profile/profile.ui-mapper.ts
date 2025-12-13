@@ -1,11 +1,19 @@
-import type { Profile } from "./profile.types"
-import type { ProfileUI } from "./profile.ui-contract"
+import { Profile } from "./profile.types";
+
+export interface ProfileUI {
+  id: string;
+  fullName: string;
+  phone: string;
+  level: Profile["level"];
+  avatarUrl: string;
+}
 
 export function mapProfileToUI(profile: Profile): ProfileUI {
   return {
-    name: `${profile.firstName} ${profile.lastName}`,
+    id: profile.id,
+    fullName: `${profile.firstName} ${profile.lastName}`,
     phone: profile.phone,
     level: profile.level,
-    avatarUrl: profile.avatarUrl,
-  }
+    avatarUrl: profile.profilePicture,
+  };
 }
