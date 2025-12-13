@@ -12,10 +12,10 @@ export function mapProfileFromApi(raw: any): Profile {
     otherName: raw.otherName ?? "",
 
     phone: raw.phone ?? raw.phoneNumber ?? "",
+
     age: Number(raw.age ?? 0),
 
-   yearsOfExperience: Number(raw.yearsOfExperience ?? 0),
-
+    experienceYears: Number(raw.yearsOfExperience ?? raw.experienceYears ?? 0),
 
     level: raw.level ?? "Bronze",
 
