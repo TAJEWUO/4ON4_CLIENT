@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { apiGetProfile, apiGetVehicles } from "@/lib/api";
-import ProfileCard from "@/components/ProfileCard";
-import VehicleCard from "@/components/VehicleCard";
-import VehicleForm from "@/components/VehicleForm";
 import { getUserId } from "@/lib/utils/storage";
+
+// Optional UI components you already have
+import Dashboard from "@/components/dashboard";
+import TripCard from "@/components/trip-card";
+import CarWidget from "@/components/car-widget";
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState<any | null>(null);
   const [vehicles, setVehicles] = useState<any[]>([]);
-  const [showAdd, setShowAdd] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,9 +21,8 @@ export default function DashboardPage() {
       return;
     }
 
-    Promise.all([loadProfile(uid), loadVehicles(uid)]).finally(() =>
-      setLoading(false)
-    );
+    Promise.all([loadProfile(uid), loadVehicles(uid)])
+      .finally(() => setLoading(false));
   }, []);
 
   async function loadProfile(uid: string) {
@@ -44,71 +44,48 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <div className="p-4 text-sm">Loading dashboard...</div>;
+    return <div className="p-4">Loading dashboard...</div>;
   }
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
+    <div className="p-4 space-y-6 max-w-4xl mx-auto">
+      {/* OPTIONAL MAIN DASHBOARD LAYOUT */}
+      <Dashboard />
 
-        <button
-          className="px-3 py-1 bg-black text-white rounded"
-          onClick={() => setShowAdd((s) => !s)}
-        >
-          {showAdd ? "Close" : "Add Vehicle"}
-        </button>
-      </div>
-
-      {/* PROFILE */}
-      <section className="mt-6">
-        <h2 className="text-lg font-medium">Profile</h2>
-
+      {/* Profile Section */}
+      <section>
+        <h2 className="text-xl font-semibold">Your Profile</h2>
         {profile ? (
-          <ProfileCard
-            profile={profile}
-            onReload={() => {
-              const uid = getUserId();
-              if (uid) loadProfile(uid);
-            }}
-          />
+          <div className="p-3 border rounded bg-white mt-2">
+            <p><strong>Name:</strong> {profile.name ?? "N/A"}</p>
+            <p><strong>Phone:</strong> {profile.phone ?? "N/A"}</p>
+          </div>
         ) : (
-          <p className="text-sm text-gray-500 mt-2">
-            No profile data available.
-          </p>
+          <p className="text-gray-500 text-sm mt-2">No profile data available.</p>
         )}
       </section>
 
-      {/* VEHICLES */}
-      <section className="mt-6">
-        <h2 className="text-lg font-medium">Your Vehicles</h2>
+      {/* Vehicle Section */}
+      <section>
+        <h2 className="text-xl font-semibold">Your Vehicles</h2>
 
-        {showAdd && (
-          <VehicleForm
-            onSaved={() => {
-              const uid = getUserId();
-              if (uid) loadVehicles(uid);
-              setShowAdd(false);
-            }}
-          />
+        {vehicles.length === 0 && (
+          <p className="text-gray-500 text-sm">You have no vehicles yet.</p>
         )}
 
-        <div className="mt-4 space-y-3">
-          {vehicles.length === 0 && (
-            <p className="text-sm text-gray-500">No vehicles yet.</p>
-          )}
+        {vehicles.length > 0 && (
+          <div className="grid grid-cols-1 gap-3 mt-3">
+            {vehicles.map((v) => (
+              <CarWidget key={v._id} vehicle={v} />
+            ))}
+          </div>
+        )}
+      </section>
 
-          {vehicles.map((v) => (
-            <VehicleCard
-              key={v._id}
-              vehicle={v}
-              onDeleted={() => {
-                const uid = getUserId();
-                if (uid) loadVehicles(uid);
-              }}
-            />
-          ))}
-        </div>
+      {/* Optional Trips Section */}
+      <section>
+        <h2 className="text-xl font-semibold">Your Trips</h2>
+        <TripCard />
       </section>
     </div>
   );
