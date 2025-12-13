@@ -32,7 +32,8 @@ export default function RegisterForm() {
     }
 
     setLoading(true);
-    const { ok, data } = await startVerify(cleaned, "register");
+   const { ok, data } = await startVerify(cleaned);
+
     setLoading(false);
 
     if (!ok) {
