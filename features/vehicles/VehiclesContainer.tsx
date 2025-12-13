@@ -1,31 +1,37 @@
 "use client";
 
-import { CarWidget } from "@/components/car-widget";
 import { useEffect, useState } from "react";
-import { apiGetVehicles } from "@/lib/api";
-import type { Car } from "./vehicles.types";
+import { CarWidget } from "@/components/car-widget";
+import { getVehicles } from "./vehicles.service";
+import { mapVehicleToCarWidget } from "./vehicles.ui-mapper";
+import type { Vehicle } from "./vehicles.types";
 
 export default function VehiclesContainer({ userId }: { userId: string }) {
-  const [cars, setCars] = useState<Car[]>([]);
+  const [cars, setCars] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadCars();
-  }, []);
+    getVehicles(userId)
+      .then(setCars)
+      .finally(() => setLoading(false));
+  }, [userId]);
 
-  async function loadCars() {
-    const { ok, data } = await apiGetVehicles(userId);
-    if (ok) setCars(data.vehicles);
-  }
+  if (loading) return <p>Loading vehicles…</p>;
+  if (cars.length === 0) return <p>No vehicles yet.</p>;
 
   return (
     <div className="grid gap-4">
-      {cars.map(car => (
-        <CarWidget
-          key={car.id}
-          car={car}
-          onDelete={() => {}}
-        />
-      ))}
+      {cars.map((car) => {
+        const uiCar = mapVehicleToCarWidget(car);
+
+        return (
+          <CarWidget
+            key={uiCar.id}
+            car={uiCar}
+            onDelete={() => {}}
+          />
+        );
+      })}
     </div>
   );
 }
