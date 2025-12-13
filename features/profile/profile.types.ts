@@ -13,5 +13,5 @@ export interface Profile {
   traNumber?: string
   employmentStatus?: "Freelancer" | "Employed"
   role?: "Driver" | "CarOwner"
-  avatarUrl?: string
+   profilePicture: string; 
 }
