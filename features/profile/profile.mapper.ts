@@ -14,7 +14,7 @@ export function mapProfileFromApi(raw: any): Profile {
     phone: raw.phone ?? raw.phoneNumber ?? "",
     age: Number(raw.age ?? 0),
 
-    yearsOfExperience: Number(raw.yearsOfExperience ?? 0),
+    yearsOfExperience?: Number,
 
     level: raw.level ?? "Bronze",
 
