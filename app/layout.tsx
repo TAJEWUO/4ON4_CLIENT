@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
+import RequireAuth from "@/components/RequireAuth"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -12,14 +13,11 @@ export const metadata: Metadata = {
   generator: "v0.app",
 }
 
-export default function RootLayout({
+
+export default function DashboardLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  return (
-    <html lang="en">
-      <body className={`font-sans antialiased bg-white text-black`}>{children}</body>
-    </html>
-  )
+}: {
+  children: React.ReactNode;
+}) {
+  return <RequireAuth>{children}</RequireAuth>;
 }
