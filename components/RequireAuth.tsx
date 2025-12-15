@@ -9,24 +9,16 @@ export default function RequireAuth({
 }: {
   children: React.ReactNode;
 }) {
-  const { ready, isAuth } = useSession();
+  const { ready, userId } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (!ready) return;
-
-    if (!isAuth) {
+    if (ready && !userId) {
       router.replace("/user/auth/login");
     }
-  }, [ready, isAuth, router]);
+  }, [ready, userId, router]);
 
-  if (!ready) {
-    return <div className="p-4">Checking session...</div>;
-  }
-
-  if (!isAuth) {
-    return null;
-  }
+  if (!ready) return null;
 
   return <>{children}</>;
 }
