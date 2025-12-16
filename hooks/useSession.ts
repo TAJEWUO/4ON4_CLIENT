@@ -1,3 +1,4 @@
+//
 // hooks/useSession.ts
 "use client";
 
@@ -19,3 +20,4 @@ export function useSession() {
 
   return { ready, isAuth, userId };
 }
+//
