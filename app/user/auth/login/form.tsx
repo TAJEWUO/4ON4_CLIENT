@@ -48,7 +48,7 @@ export default function LoginForm() {
     if (data?.accessToken) localStorage.setItem("fouron4_access", data.accessToken);
     if (data?.refreshToken) localStorage.setItem("fouron4_refresh", data.refreshToken);
 
-    router.push("/user/dashboard");
+    router.push("/user/app");
   };
 
   return (

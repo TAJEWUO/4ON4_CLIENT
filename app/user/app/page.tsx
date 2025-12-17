@@ -1,8 +1,9 @@
-// app/user/app/page.tsx
-export default function HomePage() {
+// app/page.tsx
+export default function Page() {
   return (
-    <section className="p-4">
-      {/* Admin-controlled / future dynamic content */}
-    </section>
+    <main style={{ padding: 20 }}>
+      <h1>4ON4 App Shell</h1>
+      <p>If you see this, routing is correct.</p>
+    </main>
   );
 }
