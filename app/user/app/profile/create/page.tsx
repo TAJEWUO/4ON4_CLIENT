@@ -1,11 +1,11 @@
 "use client";
 
-import ProfileWizard from "@/components/profile/wizard/ProfileWizard";
-
 export default function CreateProfilePage() {
   return (
-    <div className="min-h-screen bg-white">
-      <ProfileWizard />
+    <div style={{ padding: 40 }}>
+      <h1 style={{ fontSize: 24, color: "red" }}>
+        PROFILE CREATE PAGE IS RENDERING
+      </h1>
     </div>
   );
 }
