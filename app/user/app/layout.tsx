@@ -1,9 +1,8 @@
-// app/user/app/layout.tsx
 "use client";
 
 import RequireAuth from "@/components/RequireAuth";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function AppLayout({
   children,
@@ -13,15 +12,13 @@ export default function AppLayout({
   return (
     <RequireAuth>
       <div className="min-h-screen flex flex-col bg-white">
-        {/* Top bar */}
         <Header />
 
-        {/* Main app content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* 🔑 THIS IS THE MOST IMPORTANT LINE */}
+        <main className="flex-1 overflow-y-auto pb-24">
           {children}
         </main>
 
-        {/* Bottom navigation */}
         <Footer />
       </div>
     </RequireAuth>
