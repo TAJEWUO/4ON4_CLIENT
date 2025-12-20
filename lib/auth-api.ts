@@ -3,20 +3,20 @@
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://fouron4-backend-1.onrender.com";
 
-async function postAuth(path: string, body: any) {
+const API_BASE = "https://fouron4-backend-1.onrender.com";
+
+async function postAuth(endpoint: string, body: any) {
   try {
-    const res = await fetch(`${API_URL}/api/auth${path}`, {
+    const res = await fetch(`${API_BASE}/api/auth${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) return { ok: false, data };
-    return { ok: true, data };
-  } catch (err) {
-    return { ok: false, data: { message: "Network error" } };
+    const data = await res.json().catch(() => null);
+    return { ok: res.ok, data };
+  } catch (err: any) {
+    return { ok: false, data: { message: err.message || "Network error" } };
   }
 }
 

@@ -19,26 +19,31 @@ export type ProfileFormData = {
   level: "GOLD" | "SILVER" | "BRONZE" | "";
 
   idNumber: string;
+  passportNumber?: string;
+  drivingLicenseNumber?: string;
+  traNumber?: string;
+
   yearsOfExperience: number | "";
   bio: string;
 };
 
 export default function ProfileWizard() {
   const [step, setStep] = useState(1);
-
   const [formData, setFormData] = useState<ProfileFormData>({
-    firstName: "",
-    lastName: "",
-    otherName: "",
-    phoneNumber: "",
-    email: "",
-    languages: [],
-    level: "",
-    idNumber: "",
-    yearsOfExperience: "",
-    bio: "",
-  });
-
+  firstName: "",
+  lastName: "",
+  otherName: "",
+  phoneNumber: "",
+  email: "",
+  languages: [],
+  level: "",
+  idNumber: "",
+  passportNumber: "",
+  drivingLicenseNumber: "",
+  traNumber: "",
+  yearsOfExperience: "",
+  bio: "",
+});
   const updateField = <K extends keyof ProfileFormData>(
     field: K,
     value: ProfileFormData[K]
