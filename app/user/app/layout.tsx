@@ -2,7 +2,7 @@
 
 import RequireAuth from "@/components/RequireAuth";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Footer from "@/components/Footer_temp";
 
 export default function AppLayout({
   children,
