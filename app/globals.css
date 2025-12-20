@@ -88,3 +88,114 @@
     @apply bg-white text-black;
   }
 }
+
+
+/* Profile Wizard */
+.pw-input {
+  width: 80%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 2px solid #161313; /* STRONG visible border */
+  background: #fff;
+  font-size: 1.8rem;
+  outline: none;
+}
+
+.pw-input::placeholder {
+  color: #9ca3af;
+}
+
+.pw-input:focus {
+  border-color: #16a34a; /* green focus */
+}
+input[type="file"].pw-input {
+  padding: 6Spx;
+  font-size: 0.8rem;
+}
+.pw-nav-wrap {
+  margin-top: 80px; /* pushes buttons far down */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pw-nav-btn {
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: #16a34a; /* green */
+  color: white;
+  font-size: 0.85rem;
+}
+
+.pw-save-btn {
+  padding: 16px 40px;
+  border-radius: 999px;
+  background: #000;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.pw-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Step 4 Save Animation */
+
+.pw-save-screen {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.pw-save-circle {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: #22c55e; /* green */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pw-save-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255,255,255,0.4);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.pw-save-check {
+  font-size: 64px;
+  color: white;
+}
+
+.pw-save-message {
+  margin-top: 18px;
+  font-size: 0.9rem;
+  color: #374151;
+  text-align: center;
+}
+
+.pw-save-main-btn {
+  margin-top: 60px;
+  padding: 18px 48px;
+  border-radius: 999px;
+  background: #22c55e;
+  color: white;
+  font-size: 1rem;
+}

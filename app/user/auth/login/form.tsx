@@ -98,7 +98,7 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPin((p) => !p)}
-                className="absolute right-3 top-2 text-xs text-gray-600 hover:text-black"
+                className="absolute right-3 top-2 text-xs text-gray-1500 hover:text-green-700"
               >
                 {showPin ? "Hide" : "Show"}
               </button>
@@ -117,11 +117,11 @@ export default function LoginForm() {
         </form>
 
         <p className="mt-4 text-center text-xs">
-          Forgot PIN? <a href="/user/auth/forgot-pin" className="text-blue-700 underline">Reset PIN</a>
+          Forgot PIN? <a href="/user/auth/forgot-pin" className="text-blue-700 ">Reset PIN</a>
         </p>
 
-        <p className="mt-2 text-center text-xs">
-          Don’t have an account? <a href="/user/auth/register" className="text-blue-700 underline">Create Account</a>
+        <p className="mt-4 text-center text-xs">
+          Don’t have an account? <a href="/user/auth/register" className="text-blue-600 ">Create Account</a>
         </p>
       </div>
     </div>

@@ -66,7 +66,7 @@ export default function RegisterForm() {
                 type="tel"
                 inputMode="numeric"
                 className="flex-1 border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-sm"
-                placeholder="7xxxxxxxx or 1xxxxxxxx"
+                placeholder=""
                 value={phone}
                 maxLength={10}
                 onChange={(e) => setPhone(normalizeLocalPhone(e.target.value))}

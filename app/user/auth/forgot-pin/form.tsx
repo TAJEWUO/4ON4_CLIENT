@@ -73,7 +73,7 @@ export default function ForgotPinForm() {
           </span>
         </div>
 
-        <h1 className="text-xl font-semibold text-center mb-4">Forgot PIN</h1>
+        <h1 className="text-xl font-semibold text-center mb-4">Enter Phone Number Used If You Forgot PIN</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
@@ -93,7 +93,7 @@ export default function ForgotPinForm() {
                 inputMode="numeric"
                 maxLength={10}
                 className="flex-1 bg-transparent outline-none text-sm pl-3"
-                placeholder="7xx xxx xxx"
+                placeholder=""
                 value={phone}
                 onChange={(e) =>
                   setPhone(e.target.value.replace(/\D/g, "")) // only digits
@@ -116,7 +116,7 @@ export default function ForgotPinForm() {
         </form>
 
         <p className="text-center text-xs mt-4">
-          Remember your PIN?{" "}
+          Remembered your PIN?{" "}
           <a href="/user/auth/login" className="text-blue-700 underline">
             Log in
           </a>

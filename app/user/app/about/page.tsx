@@ -25,12 +25,14 @@ export default function AboutPage() {
 
   return (
     <div className="px-4 pt-6 pb-28 space-y-10">
-      {/* PROFILE PREVIEW */}
+      {/* PROFILE PREVIEW (STATIC FOR NOW) */}
       <section className="flex flex-col items-center space-y-3">
         <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
           <User />
         </div>
+
         <h2 className="font-semibold text-lg"></h2>
+
         <button
           onClick={() => router.push("/user/app/profile")}
           className="text-sm text-blue-600"
