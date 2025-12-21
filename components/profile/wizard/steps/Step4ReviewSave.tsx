@@ -4,8 +4,19 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { saveProfile } from "@/features/profile/profile.service";
-import CenteredOverlay from "../CenteredOverlay";
-import ReviewItem from "../ReviewItem";
+
+const CenteredOverlay = ({ children }: { children: React.ReactNode }) => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+    {children}
+  </div>
+);
+
+const ReviewItem = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex justify-between py-2 border-b border-gray-200">
+    <span className="font-medium text-gray-700">{label}:</span>
+    <span className="text-gray-900">{value}</span>
+  </div>
+);
 
 type Props = {
   data: any;
