@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useProfile } from "@/hooks/useProfile";
+import { API_BASE } from "@/lib/http";
 import {
   ChevronRight,
   Settings,
@@ -16,6 +18,7 @@ import {
 
 export default function AboutPage() {
   const router = useRouter();
+  const { profile, loading, error, refresh } = useProfile();
 
   const logout = () => {
     localStorage.clear();
@@ -23,22 +26,52 @@ export default function AboutPage() {
     router.replace("/user/auth/login");
   };
 
+  const avatarUrl = (() => {
+    if (!profile) return null;
+    // backend may return profilePicture as { path: 'uploads/users/...' } or as string
+    const pic = profile.profilePicture ?? profile.profilePicture?.path ?? profile.avatarUrl ?? null;
+    if (!pic) return null;
+    if (typeof pic === "string") {
+      if (pic.startsWith("http://") || pic.startsWith("https://")) return pic;
+      // relative path from backend
+      return `${API_BASE}/${(pic as string).replace(/^\/+/, "")}`;
+    }
+    // object with path
+    if (pic?.path) return `${API_BASE}/${(pic.path as string).replace(/^\/+/, "")}`;
+    return null;
+  })();
+
   return (
     <div className="px-4 pt-6 pb-28 space-y-10">
-      {/* PROFILE PREVIEW (STATIC FOR NOW) */}
+      {/* PROFILE PREVIEW */}
       <section className="flex flex-col items-center space-y-3">
-        <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
-          <User />
+        <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <User />
+            </div>
+          )}
         </div>
 
-        <h2 className="font-semibold text-lg"></h2>
+        <h2 className="font-semibold text-lg">
+          {loading ? "Loading…" : profile ? ((`${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() || profile.phoneNumber) ?? profile.phone) || "" : "No profile"}
+        </h2>
 
         <button
           onClick={() => router.push("/user/app/profile")}
           className="text-sm text-blue-600"
         >
-          Add Profile
+          {profile ? "View Full Profile" : "Add Profile"}
         </button>
+
+        {profile && (
+          <p className="text-xs text-gray-500">
+            {profile.level ? profile.level : ""}
+          </p>
+        )}
       </section>
 
       <hr className="border-gray-200" />
@@ -94,7 +127,7 @@ export default function AboutPage() {
       </button>
 
       {/* QUICK CHAT */}
-      <button className="fixed bottom-20 right-4 w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-lg">
+      <button className="fixed bottom-20 right-4 w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-lg" aria-label="Open chat">
         <MessageCircle />
       </button>
     </div>
