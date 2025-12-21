@@ -1,64 +1,28 @@
+ //github.com/TAJEWUO/4ON4_CLIENT/blob/f07fcd85ab31986c03e72244aa5e489fbdb3da8f/lib/auth-api.ts
 // lib/auth-api.ts
+import { httpPost, API_BASE } from "@/lib/http";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://fouron4-backend-1.onrender.com";
+/**
+ * Simple auth API wrapper that uses centralized http helper.
+ * NOTE: httpPost will not attach cookies; auth returns access/refresh tokens.
+ */
 
-const API_BASE = "https://fouron4-backend-1.onrender.com";
-
-async function postAuth(endpoint: string, body: any) {
-  try {
-    const res = await fetch(`${API_BASE}/api/auth${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json().catch(() => null);
-    return { ok: res.ok, data };
-  } catch (err: any) {
-    return { ok: false, data: { message: err.message || "Network error" } };
-  }
-}
-
-/* ---------------------------------------------------
-   START VERIFY (OTP)
---------------------------------------------------- */
-export async function startVerify(phone: string) {
-  return postAuth("/verify/start", { phone });
-}
-
-/* ---------------------------------------------------
-   CHECK VERIFY (OTP)
---------------------------------------------------- */
-export async function checkVerify(otp: string, token: string) {
-  return postAuth("/verify/check", { otp, token });
-}
-
-/* ---------------------------------------------------
-   COMPLETE REGISTRATION   <— REQUIRED BY create-account
---------------------------------------------------- */
-export async function completeRegister(
-  token: string,
-  pin: string,
-  confirmPin: string
-) {
-  return postAuth("/register-complete", { token, pin, confirmPin });
-}
-
-/* ---------------------------------------------------
-   LOGIN
---------------------------------------------------- */
 export async function loginUser(phone: string, pin: string) {
-  return postAuth("/login", { phone, pin });
+  return httpPost("/api/auth/login", JSON.stringify({ phone, pin }));
 }
 
-/* ---------------------------------------------------
-   RESET PIN COMPLETE
---------------------------------------------------- */
-export async function resetPinComplete(
-  token: string,
-  pin: string,
-  confirmPin: string
-) {
-  return postAuth("/reset-pin-complete", { token, pin, confirmPin });
+export async function startVerify(phone: string, mode = "register") {
+  return httpPost("/api/auth/verify/start", JSON.stringify({ phone, mode }));
+}
+
+export async function checkVerify(otp: string, token: string, mode = "register") {
+  return httpPost("/api/auth/verify/check", JSON.stringify({ code: otp, token, mode }));
+}
+
+export async function completeRegister(token: string, pin: string, confirmPin: string) {
+  return httpPost("/api/auth/register-complete", JSON.stringify({ token, pin, confirmPin }));
+}
+
+export async function resetPinComplete(token: string, pin: string, confirmPin: string) {
+  return httpPost("/api/auth/reset-pin-complete", JSON.stringify({ token, pin, confirmPin }));
 }
