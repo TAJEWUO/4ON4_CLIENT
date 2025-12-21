@@ -1,24 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { saveProfile } from "@/features/profile/profile.service";
+import CenteredOverlay from "../CenteredOverlay";
+import ReviewItem from "../ReviewItem";
 
 type Props = {
   data: any;
   onBack: () => void;
+  onSaved?: () => void; // optional callback
+  canSave?: boolean; // indicates whether Save should be enabled
 };
 
-export default function Step4ReviewSave({ data, onBack }: Props) {
+export default function Step4ReviewSave({ data, onBack, onSaved, canSave = true }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saving" | "success">("idle");
 
   const handleSave = async () => {
+    if (!canSave) {
+      alert("No changes to save or required fields missing.");
+      return;
+    }
+
     setStatus("saving");
 
     const formData = new FormData();
-
     Object.entries(data).forEach(([key, value]) => {
       if (value === null || value === undefined) return;
 
@@ -41,9 +49,13 @@ export default function Step4ReviewSave({ data, onBack }: Props) {
       setTimeout(() => {
         setStatus("success");
         setTimeout(() => {
-          router.replace("/user/app/about");
-        }, 1200);
-      }, 1200);
+          if (onSaved) {
+            onSaved();
+          } else {
+            router.replace("/user/app/about");
+          }
+        }, 800);
+      }, 600);
     } catch (err) {
       console.error(err);
       alert("Failed to save profile. Please try again.");
@@ -67,14 +79,28 @@ export default function Step4ReviewSave({ data, onBack }: Props) {
             <ReviewItem label="Experience" value={`${data.yearsOfExperience || 0} years`} />
           </div>
 
-          <div className="pt-24 flex justify-between">
-            <button onClick={onBack} className="px-6 py-3 rounded-full border border-green-600 text-green-600 text-sm">
-              ← Previous
-            </button>
+          <div className="pt-24 flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <button onClick={onBack} className="px-6 py-3 rounded-full border border-green-600 text-green-600 text-sm">
+                ← Previous
+              </button>
 
-            <button onClick={handleSave} className="px-10 py-4 rounded-full bg-green-600 text-white text-sm font-medium">
-              SAVE PROFILE
-            </button>
+              <button
+                onClick={handleSave}
+                disabled={!canSave}
+                className={`px-10 py-4 rounded-full text-sm font-medium ${
+                  canSave ? "bg-green-600 text-white" : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                SAVE PROFILE
+              </button>
+            </div>
+
+            {!canSave && (
+              <p className="text-xs text-gray-500">
+                Make changes and ensure required fields (First name or Phone) are filled to enable Save.
+              </p>
+            )}
           </div>
         </>
       )}
@@ -96,20 +122,5 @@ export default function Step4ReviewSave({ data, onBack }: Props) {
         </CenteredOverlay>
       )}
     </div>
-  );
-}
-
-function ReviewItem({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="flex justify-between border-b pb-2">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-right">{value && String(value).length ? value : "-"}</span>
-    </div>
-  );
-}
-
-function CenteredOverlay({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">{children}</div>
   );
 }

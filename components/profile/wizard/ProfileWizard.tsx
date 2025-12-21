@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import WizardLayout from "./WizardLayout";
 
 import Step1BasicInfo from "./steps/Step1BasicInfo";
@@ -29,25 +29,61 @@ export type ProfileFormData = {
   bio: string;
 };
 
-export default function ProfileWizard() {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<ProfileFormData>({
-    firstName: "",
-    lastName: "",
-    otherName: "",
-    phoneNumber: "",
-    email: "",
-    languages: [],
-    level: "",
-    idNumber: "",
-    passportNumber: "",
-    drivingLicenseNumber: "",
-    traNumber: "",
-    yearsOfExperience: "",
-    bio: "",
-  });
+type Props = {
+  onSaved?: () => void; // optional callback to run after successful save
+  // optional prop to initially open at a specific step (not required)
+  startStep?: number;
+};
 
-  // Autofill from API when profile exists
+function mapPayloadToForm(payload: any): ProfileFormData {
+  if (!payload) {
+    return {
+      firstName: "",
+      lastName: "",
+      otherName: "",
+      phoneNumber: "",
+      email: "",
+      languages: [],
+      level: "",
+      idNumber: "",
+      passportNumber: "",
+      drivingLicenseNumber: "",
+      traNumber: "",
+      yearsOfExperience: "",
+      bio: "",
+    };
+  }
+
+  return {
+    firstName: payload.firstName ?? "",
+    lastName: payload.lastName ?? "",
+    otherName: payload.otherName ?? "",
+    phoneNumber: payload.phoneNumber ?? payload.phone ?? "",
+    email: payload.email ?? "",
+    languages: Array.isArray(payload.languages)
+      ? payload.languages
+      : typeof payload.languages === "string" && payload.languages.length
+      ? payload.languages.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [],
+    level: (payload.level ?? "") as ProfileFormData["level"],
+    idNumber: payload.idNumber ?? "",
+    passportNumber: payload.passportNumber ?? "",
+    drivingLicenseNumber: payload.drivingLicenseNumber ?? "",
+    traNumber: payload.traNumber ?? "",
+    yearsOfExperience:
+      payload.yearsOfExperience !== undefined && payload.yearsOfExperience !== null
+        ? Number(payload.yearsOfExperience)
+        : "",
+    bio: payload.bio ?? "",
+  };
+}
+
+export default function ProfileWizard({ onSaved, startStep = 1 }: Props) {
+  const [step, setStep] = useState<number>(startStep);
+  const [formData, setFormData] = useState<ProfileFormData>(() => mapPayloadToForm(null));
+  const [initialData, setInitialData] = useState<ProfileFormData | null>(null);
+
+  // load profile on mount and fill form + initial snapshot
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -56,32 +92,11 @@ export default function ProfileWizard() {
         const payload = data?.profile ?? data;
         if (!mounted || !payload) return;
 
-        setFormData((prev) => ({
-          ...prev,
-          firstName: payload.firstName ?? prev.firstName,
-          lastName: payload.lastName ?? prev.lastName,
-          otherName: payload.otherName ?? prev.otherName,
-          phoneNumber: payload.phoneNumber ?? payload.phone ?? prev.phoneNumber,
-          email: payload.email ?? prev.email,
-          languages: Array.isArray(payload.languages)
-            ? payload.languages
-            : (typeof payload.languages === "string" && payload.languages.length
-                ? payload.languages.split(",").map((s: string) => s.trim()).filter(Boolean)
-                : prev.languages),
-          level: (payload.level ?? prev.level) as ProfileFormData["level"],
-          idNumber: payload.idNumber ?? prev.idNumber,
-          passportNumber: payload.passportNumber ?? prev.passportNumber,
-          drivingLicenseNumber: payload.drivingLicenseNumber ?? prev.drivingLicenseNumber,
-          traNumber: payload.traNumber ?? prev.traNumber,
-          yearsOfExperience:
-            payload.yearsOfExperience !== undefined && payload.yearsOfExperience !== null
-              ? Number(payload.yearsOfExperience)
-              : prev.yearsOfExperience,
-          bio: payload.bio ?? prev.bio,
-        }));
+        const mapped = mapPayloadToForm(payload);
+        setFormData(mapped);
+        setInitialData(mapped);
       } catch (err) {
-        // No profile found or network error — ignore and let user fill the form
-        // console.debug("ProfileWizard: no profile or failed to load", err);
+        // no profile or network error — keep defaults (new user)
       }
     })();
 
@@ -90,22 +105,46 @@ export default function ProfileWizard() {
     };
   }, []);
 
-  const updateField = <K extends keyof ProfileFormData>(
-    field: K,
-    value: ProfileFormData[K]
-  ) => {
+  // update helper
+  const updateField = <K extends keyof ProfileFormData>(field: K, value: ProfileFormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  // dirty check: compare JSON-serialized initial snapshot vs current form data
+  const isDirty = useMemo(() => {
+    if (!initialData) {
+      // no initial data => treat as dirty only if any meaningful field is filled
+      const hasAny = Boolean(
+        (formData.firstName && formData.firstName.trim()) ||
+        (formData.phoneNumber && formData.phoneNumber.trim()) ||
+        (formData.email && formData.email.trim()) ||
+        (Array.isArray(formData.languages) && formData.languages.length > 0)
+      );
+      return hasAny;
+    }
+    try {
+      return JSON.stringify(initialData) !== JSON.stringify(formData);
+    } catch {
+      return true;
+    }
+  }, [initialData, formData]);
+
+  // minimal validity: require firstName or phoneNumber (you can add more rules)
+  const isValid = useMemo(() => {
+    return Boolean(
+      (formData.firstName && formData.firstName.trim().length > 0) ||
+      (formData.phoneNumber && formData.phoneNumber.trim().length > 6)
+    );
+  }, [formData]);
+
+  // whether user can save: must be dirty and valid
+  const canSave = isDirty && isValid;
 
   return (
     <>
       {step === 1 && (
         <WizardLayout title="STEP 1 — Basic Info" step={1}>
-          <Step1BasicInfo
-            data={formData}
-            onChange={updateField}
-            onNext={() => setStep(2)}
-          />
+          <Step1BasicInfo data={formData} onChange={updateField} onNext={() => setStep(2)} />
         </WizardLayout>
       )}
 
