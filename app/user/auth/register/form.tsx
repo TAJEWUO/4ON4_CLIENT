@@ -32,31 +32,17 @@ export default function RegisterForm() {
     }
 
     setLoading(true);
-    
-    try {
-      const { ok, data } = await startVerify(cleaned);
+    const { ok, data } = await startVerify(cleaned);
+    setLoading(false);
 
-      setLoading(false);
-
-      console.log("[Register] startVerify response:", { ok, data });
-      
-      // Save phone and mode regardless of token
-      localStorage.setItem("fouron4_auth_phone", cleaned);
-      localStorage.setItem("fouron4_auth_mode", "register");
-      
-      // If dev mode returns a token, save it
-      if (data?.token) {
-        localStorage.setItem("fouron4_register_token", data.token);
-      }
-
-      // Always redirect to verify-otp page
-      // The actual verification happens there with checkVerify
-      router.push("/user/auth/verify-otp");
-    } catch (err: any) {
-      setLoading(false);
-      console.error("[Register] startVerify error:", err);
-      setMsg(err?.message || "Network error. Please try again.");
+    if (!ok) {
+      setMsg(data?.message || "Failed to send code");
+      return;
     }
+
+    // Save phone and redirect to OTP page
+    localStorage.setItem("fouron4_phone", cleaned);
+    router.push("/user/auth/verify-otp");
   };
 
   return (

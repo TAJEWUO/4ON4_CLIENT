@@ -10,14 +10,11 @@ export default function VerifyOtpForm() {
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const [token, setToken] = useState<string | null>(null);
   const [storedPhone, setStoredPhone] = useState<string | null>(null);
 
-  // Load saved phone + token
+  // Load saved phone
   useEffect(() => {
-    setStoredPhone(localStorage.getItem("fouron4_auth_phone"));
-    setToken(localStorage.getItem("fouron4_register_token"));
+    setStoredPhone(localStorage.getItem("fouron4_phone"));
   }, []);
 
   // Handle OTP digit input
@@ -53,29 +50,21 @@ export default function VerifyOtpForm() {
     }
 
     const code = otp.join("");
-
     if (code.length !== 6) {
       setMsg("Enter all 6 digits.");
       return;
     }
 
     setLoading(true);
-
     const { ok, data } = await checkVerify(storedPhone, code);
-
     setLoading(false);
 
     if (!ok) {
-      setMsg(data?.message || "Incorrect verification code.");
+      setMsg(data?.message || "Incorrect code");
       return;
     }
 
-    // Save the token returned from checkVerify for registration
-    if (data?.token) {
-      localStorage.setItem("fouron4_register_token", data.token);
-    }
-
-    // OTP verified — continue to create-account page
+    // OTP verified - continue to create account
     router.push("/user/auth/create-account");
   };
 

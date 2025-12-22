@@ -1,28 +1,36 @@
- //github.com/TAJEWUO/4ON4_CLIENT/blob/f07fcd85ab31986c03e72244aa5e489fbdb3da8f/lib/auth-api.ts
 // lib/auth-api.ts
-import { httpPost, API_BASE } from "@/lib/http";
+import { httpPost } from "@/lib/http";
 
 /**
- * Simple auth API wrapper that uses centralized http helper.
- * NOTE: httpPost will not attach cookies; auth returns access/refresh tokens.
+ * Simple auth API - all calls return { ok, data }
  */
 
+// Send OTP to phone number
+export async function startVerify(phone: string) {
+  return httpPost("/api/auth/verify/start", JSON.stringify({ phone }));
+}
+
+// Verify OTP code
+export async function checkVerify(phone: string, code: string) {
+  return httpPost("/api/auth/verify/check", JSON.stringify({ phone, code }));
+}
+
+// Complete registration with phone, PIN, and name
+export async function completeRegister(phone: string, pin: string, firstName: string, lastName: string) {
+  return httpPost("/api/auth/register-complete", JSON.stringify({ phone, pin, firstName, lastName }));
+}
+
+// Login with phone and PIN
 export async function loginUser(phone: string, pin: string) {
   return httpPost("/api/auth/login", JSON.stringify({ phone, pin }));
 }
 
-export async function startVerify(phone: string, mode = "register") {
-  return httpPost("/api/auth/verify/start", JSON.stringify({ phone, mode }));
+// Reset PIN
+export async function resetPinComplete(phone: string, newPin: string) {
+  return httpPost("/api/auth/reset-pin-complete", JSON.stringify({ phone, newPin }));
 }
 
-export async function checkVerify(phone: string, otp: string, mode = "register") {
-  return httpPost("/api/auth/verify/check", JSON.stringify({ phone, code: otp, mode }));
-}
-
-export async function completeRegister(token: string, pin: string, confirmPin: string) {
-  return httpPost("/api/auth/register-complete", JSON.stringify({ token, pin, confirmPin }));
-}
-
-export async function resetPinComplete(token: string, pin: string, confirmPin: string) {
-  return httpPost("/api/auth/reset-pin-complete", JSON.stringify({ token, pin, confirmPin }));
+// Refresh access token
+export async function refreshToken() {
+  return httpPost("/api/auth/refresh", "");
 }

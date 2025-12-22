@@ -7,43 +7,44 @@ import { completeRegister } from "@/lib/auth-api";
 export default function CreateAccountForm() {
   const router = useRouter();
 
-  const [phoneTail, setPhoneTail] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
+  const [phone, setPhone] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
-
   const [agreed, setAgreed] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setPhoneTail(localStorage.getItem("fouron4_auth_phone"));
-    setToken(localStorage.getItem("fouron4_register_token"));
+    setPhone(localStorage.getItem("fouron4_phone"));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
 
-    if (!token) { setMsg("Missing verification token. Restart registration."); return; }
-    if (!agreed) { setMsg("You must agree to the terms and conditions."); return; }
-    if (pin.length !== 4) { setMsg("PIN must be exactly 4 digits."); return; }
-    if (pin !== pinConfirm) { setMsg("PINs do not match."); return; }
+    if (!phone) { setMsg("Missing phone. Restart registration."); return; }
+    if (!firstName || !lastName) { setMsg("Enter your name."); return; }
+    if (!agreed) { setMsg("Agree to terms."); return; }
+    if (pin.length !== 4) { setMsg("PIN must be 4 digits."); return; }
+    if (pin !== pinConfirm) { setMsg("PINs don't match."); return; }
 
     setLoading(true);
-    const { ok, data } = await completeRegister(token, pin, pinConfirm);
+    const { ok, data } = await completeRegister(phone, pin, firstName, lastName);
     setLoading(false);
 
-    if (!ok) { setMsg(data?.message || "Account creation failed."); return; }
+    if (!ok) { setMsg(data?.message || "Failed to create account"); return; }
 
+    // Save tokens and user info
+    if (data?.accessToken) localStorage.setItem("fouron4_access", data.accessToken);
     if (data?.user?.id) localStorage.setItem("fouron4_user_id", data.user.id);
 
-    localStorage.removeItem("fouron4_auth_phone");
-    localStorage.removeItem("fouron4_register_token");
-    localStorage.removeItem("fouron4_auth_mode");
+    // Clear registration data
+    localStorage.removeItem("fouron4_phone");
 
-    router.push("/user/auth/login");
+    // Go to app
+    router.push("/user/app");
   };
 
   return (
@@ -54,15 +55,39 @@ export default function CreateAccountForm() {
         <h2 className="text-lg text-center font-semibold mb-6 tracking-wide">CREATE YOUR ACCOUNT</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {phoneTail && (
+          {phone && (
             <div>
               <label className="block text-sm font-medium mb-1">Phone Number</label>
               <div className="flex items-center border border-black/20 rounded-lg px-3 py-2 bg-white">
                 <span className="text-black/70 pr-2 border-r border-black/10">+254</span>
-                <input type="text" className="flex-1 pl-3 bg-transparent outline-none text-black" value={phoneTail} disabled />
+                <input type="text" className="flex-1 pl-3 bg-transparent outline-none text-black" value={phone} disabled />
               </div>
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1">First Name</label>
+            <input 
+              type="text" 
+              value={firstName} 
+              onChange={(e) => setFirstName(e.target.value)} 
+              placeholder="John" 
+              className="w-full border border-black/20 rounded-lg px-3 py-2 bg-white outline-none" 
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Last Name</label>
+            <input 
+              type="text" 
+              value={lastName} 
+              onChange={(e) => setLastName(e.target.value)} 
+              placeholder="Doe" 
+              className="w-full border border-black/20 rounded-lg px-3 py-2 bg-white outline-none" 
+              required
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Enter New PIN</label>
@@ -81,7 +106,7 @@ export default function CreateAccountForm() {
 
           {msg && <p className="text-center text-sm text-red-600">{msg}</p>}
 
-          <button type="submit" disabled={loading} className="w-full py-3 rounded-lg bg-black text-white text-sm tracking-wide font-medium disabled:opacity-60">{loading ? "Creating..." : "Create"}</button>
+          <button type="submit" disabled={loading} className="w-full py-3 rounded-lg bg-black text-white text-sm tracking-wide font-medium disabled:opacity-60">{loading ? "Creating..." : "Create Account"}</button>
 
           <p className="text-center text-xs mt-2">Already have an account? <a href="/user/auth/login" className="text-blue-700 underline">Log in</a></p>
         </form>
