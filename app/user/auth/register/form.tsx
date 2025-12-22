@@ -32,19 +32,28 @@ export default function RegisterForm() {
     }
 
     setLoading(true);
-   const { ok, data } = await startVerify(cleaned);
+    
+    try {
+      const { ok, data } = await startVerify(cleaned);
 
-    setLoading(false);
+      setLoading(false);
 
-    if (!ok) {
-      setMsg(data?.message || "Failed to send verification code.");
-      return;
+      if (!ok) {
+        console.error("[Register] startVerify failed:", data);
+        setMsg(data?.message || "Failed to send verification code.");
+        return;
+      }
+
+      console.log("[Register] startVerify success:", data);
+      localStorage.setItem("fouron4_auth_phone", cleaned);
+      localStorage.setItem("fouron4_auth_mode", "register");
+
+      router.push("/user/auth/verify-otp");
+    } catch (err: any) {
+      setLoading(false);
+      console.error("[Register] startVerify error:", err);
+      setMsg(err?.message || "Network error. Please try again.");
     }
-
-    localStorage.setItem("fouron4_auth_phone", cleaned);
-    localStorage.setItem("fouron4_auth_mode", "register");
-
-    router.push("/user/auth/verify-otp");
   };
 
   return (

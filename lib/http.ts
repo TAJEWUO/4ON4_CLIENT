@@ -41,12 +41,15 @@ async function httpRequest(path: string, opts: RequestInit = {}) {
   try {
     res = await fetch(url, finalOpts);
   } catch (err: any) {
-    throw new Error(err?.message || "Network error");
+    console.error("[httpRequest] Network error:", err);
+    console.error("[httpRequest] URL:", url);
+    throw new Error(err?.message || "Network error - please check your connection");
   }
 
   const data = await parseJsonSafe(res);
   if (!res.ok) {
     const message = (data && (data.message || data.error)) || (typeof data === "string" ? data : "Request failed");
+    console.error("[httpRequest] HTTP error:", res.status, message);
     const e: any = new Error(message);
     e.status = res.status;
     e.payload = data;
