@@ -47,6 +47,11 @@ export default function RegisterForm() {
       console.log("[Register] startVerify success:", data);
       localStorage.setItem("fouron4_auth_phone", cleaned);
       localStorage.setItem("fouron4_auth_mode", "register");
+      
+      // If dev mode returns a token, save it
+      if (data?.token) {
+        localStorage.setItem("fouron4_register_token", data.token);
+      }
 
       router.push("/user/auth/verify-otp");
     } catch (err: any) {
