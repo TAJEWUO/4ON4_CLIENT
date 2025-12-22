@@ -47,8 +47,8 @@ export default function VerifyOtpForm() {
     e.preventDefault();
     setMsg("");
 
-    if (!token) {
-      setMsg("Missing verification token. Please restart registration.");
+    if (!storedPhone) {
+      setMsg("Missing phone number. Please restart registration.");
       return;
     }
 
@@ -61,13 +61,18 @@ export default function VerifyOtpForm() {
 
     setLoading(true);
 
-    const { ok, data } = await checkVerify(code, token);
+    const { ok, data } = await checkVerify(storedPhone, code);
 
     setLoading(false);
 
     if (!ok) {
       setMsg(data?.message || "Incorrect verification code.");
       return;
+    }
+
+    // Save the token returned from checkVerify for registration
+    if (data?.token) {
+      localStorage.setItem("fouron4_register_token", data.token);
     }
 
     // OTP verified — continue to create-account page

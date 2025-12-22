@@ -15,8 +15,8 @@ export async function startVerify(phone: string, mode = "register") {
   return httpPost("/api/auth/verify/start", JSON.stringify({ phone, mode }));
 }
 
-export async function checkVerify(otp: string, token: string, mode = "register") {
-  return httpPost("/api/auth/verify/check", JSON.stringify({ code: otp, token, mode }));
+export async function checkVerify(phone: string, otp: string, mode = "register") {
+  return httpPost("/api/auth/verify/check", JSON.stringify({ phone, code: otp, mode }));
 }
 
 export async function completeRegister(token: string, pin: string, confirmPin: string) {
