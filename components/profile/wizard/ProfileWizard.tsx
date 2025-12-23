@@ -82,6 +82,7 @@ export default function ProfileWizard({ onSaved, startStep = 1 }: Props) {
   const [step, setStep] = useState<number>(startStep);
   const [formData, setFormData] = useState<ProfileFormData>(() => mapPayloadToForm(null));
   const [initialData, setInitialData] = useState<ProfileFormData | null>(null);
+  const [existingAvatar, setExistingAvatar] = useState<string | null>(null);
 
   // load profile on mount and fill form + initial snapshot
   useEffect(() => {
@@ -95,6 +96,10 @@ export default function ProfileWizard({ onSaved, startStep = 1 }: Props) {
         const mapped = mapPayloadToForm(payload);
         setFormData(mapped);
         setInitialData(mapped);
+        
+        // Extract existing avatar path
+        const avatarPath = payload.profilePicture?.path || payload.profilePicture || null;
+        setExistingAvatar(avatarPath);
       } catch (err) {
         // no profile or network error — keep defaults (new user)
       }
@@ -108,6 +113,18 @@ export default function ProfileWizard({ onSaved, startStep = 1 }: Props) {
   // update helper
   const updateField = <K extends keyof ProfileFormData>(field: K, value: ProfileFormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Callback to reload avatar when changed
+  const handleAvatarChanged = async () => {
+    try {
+      const data = await getProfile();
+      const payload = data?.profile ?? data;
+      const avatarPath = payload?.profilePicture?.path || payload?.profilePicture || null;
+      setExistingAvatar(avatarPath);
+    } catch (err) {
+      console.error("Failed to reload avatar:", err);
+    }
   };
 
   // dirty check: compare JSON-serialized initial snapshot vs current form data
@@ -144,7 +161,13 @@ export default function ProfileWizard({ onSaved, startStep = 1 }: Props) {
     <>
       {step === 1 && (
         <WizardLayout title="STEP 1 — Basic Info" step={1}>
-          <Step1BasicInfo data={formData} onChange={updateField} onNext={() => setStep(2)} />
+          <Step1BasicInfo 
+            data={formData} 
+            onChange={updateField} 
+            onNext={() => setStep(2)}
+            existingAvatar={existingAvatar}
+            onAvatarChanged={handleAvatarChanged}
+          />
         </WizardLayout>
       )}
 

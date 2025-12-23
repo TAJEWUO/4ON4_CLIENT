@@ -1,5 +1,9 @@
 "use client";
+import { useState, useRef } from "react";
 import { ProfileFormData } from "../ProfileWizard";
+import { API_BASE } from "@/lib/http";
+import { httpPost } from "@/lib/http";
+import { User, Camera } from "lucide-react";
 
 type Props = {
   data: ProfileFormData;
@@ -8,11 +12,97 @@ type Props = {
     value: ProfileFormData[K]
   ) => void;
   onNext: () => void;
+  existingAvatar?: string | null; // Path to existing profile picture
+  onAvatarChanged?: () => void; // Callback when avatar is updated
 };
 
-export default function Step1BasicInfo({ data, onChange, onNext }: Props) {
+export default function Step1BasicInfo({ 
+  data, 
+  onChange, 
+  onNext, 
+  existingAvatar,
+  onAvatarChanged 
+}: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [currentAvatar, setCurrentAvatar] = useState<string | null>(existingAvatar || null);
+
+  const avatarUrl = (() => {
+    if (!currentAvatar) return null;
+    if (currentAvatar.startsWith("http://") || currentAvatar.startsWith("https://")) {
+      return currentAvatar;
+    }
+    return `${API_BASE}/${currentAvatar.replace(/^\/+/, "")}`;
+  })();
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("profilePicture", file);
+
+      const response = await httpPost("/api/profile/me/avatar", formData);
+      
+      if (response.profilePicture?.path) {
+        setCurrentAvatar(response.profilePicture.path);
+        onAvatarChanged?.(); // Notify parent that avatar changed
+      }
+    } catch (error) {
+      console.error("Failed to upload avatar:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Profile Picture Upload */}
+      <div className="flex flex-col items-center mb-6">
+        <div 
+          className="relative w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden cursor-pointer group"
+          onClick={handleAvatarClick}
+        >
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+          ) : (
+            <User size={40} className="text-gray-600" />
+          )}
+          
+          {/* Camera icon overlay */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <Camera size={24} className="text-white" />
+          </div>
+
+          {/* Plus icon if no avatar */}
+          {!avatarUrl && (
+            <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white">
+              <span className="text-white text-xs font-bold">+</span>
+            </div>
+          )}
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
+        <p className="text-xs text-gray-500 mt-2">
+          {uploading ? "Uploading..." : "Tap to change photo"}
+        </p>
+      </div>
+
       {[
         ["firstName", "First Name"],
         ["lastName", "Last Name"],
@@ -34,6 +124,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: Props) {
         <button
           onClick={onNext}
           className="px-6 py-3 rounded-full bg-green-600 text-white"
+          disabled={uploading}
         >
           Next →
         </button>

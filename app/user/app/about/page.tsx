@@ -45,13 +45,23 @@ export default function AboutPage() {
     <div className="px-4 pt-6 pb-28 space-y-10">
       {/* PROFILE PREVIEW */}
       <section className="flex flex-col items-center space-y-3">
-        <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+        <div 
+          className="relative w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden cursor-pointer"
+          onClick={() => router.push("/user/app/profile")}
+        >
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <User />
+            </div>
+          )}
+          
+          {/* Add + icon if no avatar */}
+          {!avatarUrl && (
+            <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white">
+              <span className="text-white text-xs font-bold">+</span>
             </div>
           )}
         </div>
