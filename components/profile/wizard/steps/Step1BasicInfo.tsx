@@ -1,9 +1,25 @@
 "use client";
 import { useState, useRef } from "react";
 import { ProfileFormData } from "../ProfileWizard";
-import { API_BASE } from "@/lib/http";
-import { httpPost } from "@/lib/http";
 import { User, Camera } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+
+async function httpPost(endpoint: string, body: string) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("fouron4_access") : null;
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      credentials: "include",
+      body,
+    });
+    const data = await res.json();
+    return { ok: res.ok, data };
+  } catch (err) {
+    return { ok: false, data: { message: "Network error" } };
+  }
+}
 
 type Props = {
   data: ProfileFormData;

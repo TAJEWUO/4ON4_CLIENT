@@ -9,6 +9,7 @@ import Step3Documents from "./steps/Step3Documents";
 import Step4ReviewSave from "./steps/Step4ReviewSave";
 
 import { getProfile } from "@/features/profile/profile.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type ProfileFormData = {
   firstName: string;
@@ -79,6 +80,7 @@ function mapPayloadToForm(payload: any): ProfileFormData {
 }
 
 export default function ProfileWizard({ onSaved, startStep = 1 }: Props) {
+  const { token } = useAuth();
   const [step, setStep] = useState<number>(startStep);
   const [formData, setFormData] = useState<ProfileFormData>(() => mapPayloadToForm(null));
   const [initialData, setInitialData] = useState<ProfileFormData | null>(null);
@@ -89,7 +91,7 @@ export default function ProfileWizard({ onSaved, startStep = 1 }: Props) {
     let mounted = true;
     (async () => {
       try {
-        const data = await getProfile();
+        const data = await getProfile(token || undefined);
         const payload = data?.profile ?? data;
         if (!mounted || !payload) return;
 

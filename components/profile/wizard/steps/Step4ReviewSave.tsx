@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { saveProfile } from "@/features/profile/profile.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CenteredOverlay = ({ children }: { children: React.ReactNode }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
@@ -27,6 +28,7 @@ type Props = {
 
 export default function Step4ReviewSave({ data, onBack, onSaved, canSave = true }: Props) {
   const router = useRouter();
+  const { token, clearAuth } = useAuth();
   const [status, setStatus] = useState<"idle" | "saving" | "success">("idle");
 
   const handleSave = async () => {
@@ -54,24 +56,38 @@ export default function Step4ReviewSave({ data, onBack, onSaved, canSave = true 
       formData.append(key, String(value));
     });
 
-    try {
-      await saveProfile(formData);
+    console.log("Saving profile with data:", data);
 
-      setTimeout(() => {
-        setStatus("success");
-        setTimeout(() => {
-          if (onSaved) {
-            onSaved();
-          } else {
-            router.replace("/user/app/about");
-          }
-        }, 800);
-      }, 600);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save profile. Please try again.");
+    const result = await saveProfile(formData, token || undefined);
+    
+    if (!result.ok) {
+      console.error("Failed to save profile:", result);
+      
+      // Check if it's an auth error
+      if (result.message?.includes("Token") || result.message?.includes("authorization")) {
+        alert("Your session has expired. Please log in again.");
+        clearAuth();
+        router.replace("/user/auth/login");
+        return;
+      }
+      
+      alert(`Failed to save profile: ${result.message || "Unknown error"}`);
       setStatus("idle");
+      return;
     }
+
+    console.log("Profile saved successfully:", result.data);
+
+    setTimeout(() => {
+      setStatus("success");
+      setTimeout(() => {
+        if (onSaved) {
+          onSaved();
+        } else {
+          router.replace("/user/app/about");
+        }
+      }, 800);
+    }, 600);
   };
 
   return (

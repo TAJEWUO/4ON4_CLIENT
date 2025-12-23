@@ -1,33 +1,41 @@
 // lib/auth-api.ts
-import { httpPost } from "@/lib/http";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+
+async function httpPost(endpoint: string, body: string) {
+  try {
+    console.log("[auth-api] POST:", `${API_BASE}${endpoint}`);
+    
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+    
+    console.log("[auth-api] Response status:", res.status, res.statusText);
+    
+    const data = await res.json();
+    console.log("[auth-api] Response data:", data);
+    
+    return { ok: res.ok, data };
+  } catch (err) {
+    console.error("[auth-api] Error:", err);
+    return { ok: false, data: { message: "Network error" } };
+  }
+}
 
 /**
  * Simple auth API - all calls return { ok, data }
  */
 
-// Send OTP to phone number
-export async function startVerify(phone: string) {
-  return httpPost("/api/auth/verify/start", JSON.stringify({ phone }));
-}
-
-// Verify OTP code
-export async function checkVerify(phone: string, code: string) {
-  return httpPost("/api/auth/verify/check", JSON.stringify({ phone, code }));
-}
-
-// Complete registration with phone, PIN, and name
-export async function completeRegister(phone: string, pin: string, firstName: string, lastName: string) {
-  return httpPost("/api/auth/register-complete", JSON.stringify({ phone, pin, firstName, lastName }));
+// Register new user with phone and PIN
+export async function register(phone: string, pin: string) {
+  return httpPost("/api/auth/register", JSON.stringify({ phone, pin }));
 }
 
 // Login with phone and PIN
-export async function loginUser(phone: string, pin: string) {
+export async function login(phone: string, pin: string) {
   return httpPost("/api/auth/login", JSON.stringify({ phone, pin }));
-}
-
-// Reset PIN
-export async function resetPinComplete(phone: string, newPin: string) {
-  return httpPost("/api/auth/reset-pin-complete", JSON.stringify({ phone, newPin }));
 }
 
 // Refresh access token

@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useProfile } from "@/hooks/useProfile";
-import { API_BASE } from "@/lib/http";
 import {
   ChevronRight,
   Settings,
@@ -15,6 +14,8 @@ import {
   MessageCircle,
   User,
 } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
 export default function AboutPage() {
   const router = useRouter();
@@ -46,42 +47,26 @@ export default function AboutPage() {
       {/* PROFILE PREVIEW */}
       <section className="flex flex-col items-center space-y-3">
         <div 
-          className="relative w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden cursor-pointer"
-          onClick={() => router.push("/user/app/profile")}
+          className="relative w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-2 border-gray-300"
         >
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <User />
-            </div>
-          )}
-          
-          {/* Add + icon if no avatar */}
-          {!avatarUrl && (
-            <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white">
-              <span className="text-white text-xs font-bold">+</span>
-            </div>
+            <User size={40} className="text-gray-400" />
           )}
         </div>
 
-        <h2 className="font-semibold text-lg">
-          {loading ? "Loading…" : profile ? ((`${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() || profile.phoneNumber) ?? profile.phone) || "" : "No profile"}
+        <h2 className="font-semibold text-xl text-center">
+          {loading ? "Loading…" : profile ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() || "User" : "No Profile"}
         </h2>
 
         <button
           onClick={() => router.push("/user/app/profile")}
-          className="text-sm text-blue-600"
+          className="px-6 py-2 rounded-full bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition"
         >
-          {profile ? "View Full Profile" : "Add Profile"}
+          View Full Profile
         </button>
-
-        {profile && (
-          <p className="text-xs text-gray-500">
-            {profile.level ? profile.level : ""}
-          </p>
-        )}
       </section>
 
       <hr className="border-gray-200" />

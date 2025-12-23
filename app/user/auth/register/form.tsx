@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { completeRegister } from "@/lib/auth-api";
+import { register } from "@/lib/auth-api";
 
 function normalizeLocalPhone(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -13,6 +13,14 @@ function normalizeLocalPhone(value: string) {
     return digits.slice(0, 9);
   }
   return digits.slice(0, 10);
+}
+
+// Convert local phone to E.164 format
+function toE164(localPhone: string) {
+  const digits = localPhone.replace(/\D/g, "");
+  let tail9 = digits;
+  if (digits.startsWith("0")) tail9 = digits.slice(1);
+  return "+254" + tail9.slice(-9);
 }
 
 export default function RegisterForm() {
@@ -52,7 +60,8 @@ export default function RegisterForm() {
     }
 
     setLoading(true);
-    const { ok, data } = await completeRegister(cleaned, pin, "", "");
+    const phoneE164 = toE164(cleaned);
+    const { ok, data } = await register(phoneE164, pin);
     setLoading(false);
 
     if (!ok) {
@@ -60,12 +69,11 @@ export default function RegisterForm() {
       return;
     }
 
-    // Save tokens and user info
-    if (data?.accessToken) localStorage.setItem("fouron4_access", data.accessToken);
+    // Save only user ID (token is in httpOnly cookie now)
     if (data?.user?.id) localStorage.setItem("fouron4_user_id", data.user.id);
 
-    // Go to app
-    router.push("/user/app");
+    // Redirect to login page
+    router.push("/user/auth/login");
   };
 
   return (

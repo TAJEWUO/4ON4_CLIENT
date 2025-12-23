@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser } from "@/lib/auth-api";
+import { login } from "@/lib/auth-api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { setAuth } = useAuth();
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -36,7 +38,9 @@ export default function LoginForm() {
     }
 
     setLoading(true);
-    const { ok, data } = await loginUser(fullPhone, pin);
+    console.log("[LOGIN FORM] Calling login API with:", fullPhone);
+    const { ok, data } = await login(fullPhone, pin);
+    console.log("[LOGIN FORM] Login result:", { ok, data });
     setLoading(false);
 
     if (!ok) {
@@ -44,10 +48,13 @@ export default function LoginForm() {
       return;
     }
 
-    if (data?.user?.id) localStorage.setItem("fouron4_user_id", data.user.id);
-    if (data?.accessToken) localStorage.setItem("fouron4_access", data.accessToken);
-    if (data?.refreshToken) localStorage.setItem("fouron4_refresh", data.refreshToken);
+    // Save token to memory context
+    if (data?.token && data?.user?.id) {
+      console.log("[LOGIN FORM] Saving token to AuthContext");
+      setAuth(data.token, data.user.id);
+    }
 
+    console.log("[LOGIN FORM] Redirecting to /user/app");
     router.push("/user/app");
   };
 
