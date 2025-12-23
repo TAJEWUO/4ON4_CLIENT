@@ -12,6 +12,8 @@ export default function CreateAccountForm() {
   const [lastName, setLastName] = useState("");
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
+  const [showPin, setShowPin] = useState(false);
+  const [showPinConfirm, setShowPinConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -91,12 +93,44 @@ export default function CreateAccountForm() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Enter New PIN</label>
-            <input type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••" className="w-full border border-black/20 rounded-lg px-3 py-2 bg-white outline-none text-lg tracking-widest" />
+            <div className="relative border border-black/20 rounded-lg px-3 py-2 bg-white">
+              <input 
+                type={showPin ? "text" : "password"} 
+                inputMode="numeric" 
+                maxLength={4} 
+                value={pin} 
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} 
+                className="w-full bg-transparent outline-none text-lg tracking-widest pr-10" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPin(!showPin)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black text-xs"
+              >
+                {showPin ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Confirm PIN</label>
-            <input type="password" inputMode="numeric" maxLength={4} value={pinConfirm} onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ""))} placeholder="••••" className="w-full border border-black/20 rounded-lg px-3 py-2 bg-white outline-none text-lg tracking-widest" />
+            <div className="relative border border-black/20 rounded-lg px-3 py-2 bg-white">
+              <input 
+                type={showPinConfirm ? "text" : "password"} 
+                inputMode="numeric" 
+                maxLength={4} 
+                value={pinConfirm} 
+                onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ""))} 
+                className="w-full bg-transparent outline-none text-lg tracking-widest pr-10" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPinConfirm(!showPinConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black text-xs"
+              >
+                {showPinConfirm ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-start gap-3 text-sm">
