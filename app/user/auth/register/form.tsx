@@ -18,8 +18,6 @@ function normalizeLocalPhone(value: string) {
 export default function RegisterForm() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -33,11 +31,6 @@ export default function RegisterForm() {
     const cleaned = normalizeLocalPhone(phone);
     if (cleaned.length < 9) {
       setMsg("Enter a valid Kenyan phone (07.. / 01.. / 7.. / 1..)");
-      return;
-    }
-
-    if (!firstName.trim() || !lastName.trim()) {
-      setMsg("Enter your first and last name");
       return;
     }
 
@@ -57,7 +50,7 @@ export default function RegisterForm() {
     }
 
     setLoading(true);
-    const { ok, data } = await completeRegister(cleaned, pin, firstName, lastName);
+    const { ok, data } = await completeRegister(cleaned, pin, "", "");
     setLoading(false);
 
     if (!ok) {
@@ -98,28 +91,6 @@ export default function RegisterForm() {
                 onChange={(e) => setPhone(normalizeLocalPhone(e.target.value))}
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">First Name</label>
-            <input
-              type="text"
-              className="w-full border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-sm"
-              placeholder="John"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Last Name</label>
-            <input
-              type="text"
-              className="w-full border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-sm"
-              placeholder="Doe"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
           </div>
 
           <div>
