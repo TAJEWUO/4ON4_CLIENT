@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { startVerify } from "@/lib/auth-api";
+import { completeRegister } from "@/lib/auth-api";
 
 function normalizeLocalPhone(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -18,6 +18,11 @@ function normalizeLocalPhone(value: string) {
 export default function RegisterForm() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [pin, setPin] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,18 +36,41 @@ export default function RegisterForm() {
       return;
     }
 
-    setLoading(true);
-    const { ok, data } = await startVerify(cleaned);
-    setLoading(false);
-
-    if (!ok) {
-      setMsg(data?.message || "Failed to send code");
+    if (!firstName.trim() || !lastName.trim()) {
+      setMsg("Enter your first and last name");
       return;
     }
 
-    // Save phone and redirect to OTP page
-    localStorage.setItem("fouron4_phone", cleaned);
-    router.push("/user/auth/verify-otp");
+    if (pin.length !== 4) {
+      setMsg("PIN must be 4 digits");
+      return;
+    }
+
+    if (pin !== pinConfirm) {
+      setMsg("PINs don't match");
+      return;
+    }
+
+    if (!agreed) {
+      setMsg("You must agree to the terms");
+      return;
+    }
+
+    setLoading(true);
+    const { ok, data } = await completeRegister(cleaned, pin, firstName, lastName);
+    setLoading(false);
+
+    if (!ok) {
+      setMsg(data?.message || "Failed to create account");
+      return;
+    }
+
+    // Save tokens and user info
+    if (data?.accessToken) localStorage.setItem("fouron4_access", data.accessToken);
+    if (data?.user?.id) localStorage.setItem("fouron4_user_id", data.user.id);
+
+    // Go to app
+    router.push("/user/app");
   };
 
   return (
@@ -53,18 +81,18 @@ export default function RegisterForm() {
           <span className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold tracking-wide">DRIVER ACCOUNT</span>
         </div>
 
-        <h1 className="text-xl font-semibold text-center mb-4">Register - Phone</h1>
+        <h1 className="text-xl font-semibold text-center mb-4">Create Account</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1">Enter Phone Number</label>
+            <label className="block text-sm font-medium mb-1">Phone Number</label>
             <div className="flex items-center gap-2">
               <span className="px-3 py-2 border border-black/30 rounded-md bg-white/80 text-sm">+254</span>
               <input
                 type="tel"
                 inputMode="numeric"
                 className="flex-1 border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-sm"
-                placeholder=""
+                placeholder="712345678"
                 value={phone}
                 maxLength={10}
                 onChange={(e) => setPhone(normalizeLocalPhone(e.target.value))}
@@ -72,9 +100,70 @@ export default function RegisterForm() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium mb-1">First Name</label>
+            <input
+              type="text"
+              className="w-full border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-sm"
+              placeholder="John"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Last Name</label>
+            <input
+              type="text"
+              className="w-full border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-sm"
+              placeholder="Doe"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Create PIN (4 digits)</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              className="w-full border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-lg tracking-widest"
+              placeholder="••••"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Confirm PIN</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              className="w-full border border-black/30 rounded-md px-3 py-2 bg-white/90 focus:outline-none text-lg tracking-widest"
+              placeholder="••••"
+              value={pinConfirm}
+              onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ""))}
+            />
+          </div>
+
+          <div className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              id="agree"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-1"
+            />
+            <label htmlFor="agree" className="text-xs text-black/70">
+              I agree to the Terms of Service and Privacy Policy
+            </label>
+          </div>
+
           {msg && <p className="text-center text-sm text-red-600 leading-snug">{msg}</p>}
 
-          <button type="submit" disabled={loading} className="w-full mt-2 py-2.5 rounded-md bg-black text-white text-sm font-semibold disabled:opacity-60"> {loading ? "Sending..." : "Send Verification Code"} </button>
+          <button type="submit" disabled={loading} className="w-full mt-2 py-2.5 rounded-md bg-black text-white text-sm font-semibold disabled:opacity-60"> {loading ? "Creating Account..." : "Create Account"} </button>
         </form>
 
         <p className="mt-5 text-center text-xs">
