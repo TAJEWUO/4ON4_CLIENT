@@ -22,14 +22,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
 export default function AboutPage() {
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, clearAuth } = useAuth();
   const { profile, loading, error, refresh } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [currentAvatar, setCurrentAvatar] = useState<string | null>(null);
 
   const logout = () => {
-    localStorage.clear();
+    clearAuth();
     sessionStorage.clear();
     router.replace("/user/auth/login");
   };

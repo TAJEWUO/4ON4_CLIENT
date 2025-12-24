@@ -20,6 +20,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // Initialize from localStorage on mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem("fouron4_access");
+    const storedUserId = localStorage.getItem("fouron4_user_id");
+    
+    if (storedToken && storedUserId) {
+      console.log("[AuthContext] Initializing from localStorage");
+      setToken(storedToken);
+      setUserId(storedUserId);
+    }
+  }, []);
+
   useEffect(() => {
     console.log("[AuthContext] Token changed:", token ? "Present" : "None");
     console.log("[AuthContext] UserId:", userId);
@@ -28,12 +40,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setAuth = (newToken: string, newUserId: string) => {
     console.log("[AuthContext] Setting auth - userId:", newUserId);
     console.log("[AuthContext] Setting auth - token:", newToken ? "Present" : "None");
+    
+    // Save to both state and localStorage
+    localStorage.setItem("fouron4_access", newToken);
+    localStorage.setItem("fouron4_user_id", newUserId);
+    
     setToken(newToken);
     setUserId(newUserId);
   };
 
   const clearAuth = () => {
     console.log("[AuthContext] Clearing auth");
+    
+    // Clear both state and localStorage
+    localStorage.removeItem("fouron4_access");
+    localStorage.removeItem("fouron4_user_id");
+    
     setToken(null);
     setUserId(null);
   };

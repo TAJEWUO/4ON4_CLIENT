@@ -7,6 +7,8 @@ import { getVehicleById, deleteVehicle } from "@/services/vehicle.service";
 import { ChevronLeft, ChevronRight, Edit2, Trash2, Loader2, Check, X } from "lucide-react";
 import VehicleWizard from "@/components/vehicles/VehicleWizard";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+
 export default function VehicleDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -114,7 +116,7 @@ export default function VehicleDetailPage() {
         {vehicle.images && vehicle.images.length > 0 ? (
           <>
             <img
-              src={`http://localhost:3002/${typeof vehicle.images[currentImageIndex] === 'string' ? vehicle.images[currentImageIndex] : vehicle.images[currentImageIndex]?.path}`}
+              src={`${API_BASE}/${typeof vehicle.images[currentImageIndex] === 'string' ? vehicle.images[currentImageIndex] : vehicle.images[currentImageIndex]?.path}`}
               alt={vehicle.plateNumber}
               className="w-full h-full object-cover"
               onError={(e) => {

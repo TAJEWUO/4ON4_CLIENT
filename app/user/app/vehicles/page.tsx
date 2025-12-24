@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getVehicles } from "@/services/vehicle.service";
 import { Plus, Loader2, Car } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+
 export default function VehiclesPage() {
   const router = useRouter();
   const { token, userId } = useAuth();
@@ -83,7 +85,7 @@ export default function VehiclesPage() {
               >
                 {vehicle.images?.[0] ? (
                   <img
-                    src={`http://localhost:3002/${typeof vehicle.images[0] === 'string' ? vehicle.images[0] : vehicle.images[0]?.path}`}
+                    src={`${API_BASE}/${typeof vehicle.images[0] === 'string' ? vehicle.images[0] : vehicle.images[0]?.path}`}
                     alt={vehicle.plateNumber}
                     className="w-full h-48 object-cover"
                     onError={(e) => {
