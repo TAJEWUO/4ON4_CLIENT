@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import { ProfileFormData } from "../ProfileWizard";
 import { User, Camera } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -39,6 +40,7 @@ export default function Step1BasicInfo({
   existingAvatar,
   onAvatarChanged 
 }: Props) {
+  const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [currentAvatar, setCurrentAvatar] = useState<string | null>(existingAvatar || null);
@@ -64,11 +66,27 @@ export default function Step1BasicInfo({
       const formData = new FormData();
       formData.append("profilePicture", file);
 
-      const response = await httpPost("/api/profile/me/avatar", formData);
+      if (!token) {
+        alert("Please log in again");
+        window.location.href = "/user/auth/login";
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/profile/me/avatar`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await response.json();
       
-      if (response.profilePicture?.path) {
-        setCurrentAvatar(response.profilePicture.path);
+      if (response.ok && data.data?.profilePicture?.path) {
+        setCurrentAvatar(data.data.profilePicture.path);
         onAvatarChanged?.(); // Notify parent that avatar changed
+      } else {
+        console.error("Upload failed:", data);
+        alert(data.message || "Failed to upload image");
       }
     } catch (error) {
       console.error("Failed to upload avatar:", error);
