@@ -10,7 +10,7 @@ type VehicleFormData = {
   plateNumber: string;
   model: string;
   seatCount: number;
-  tripType: string;
+  tripType: string[];
   color: string;
   windowType: string;
   sunroof: boolean;
@@ -37,7 +37,7 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
     plateNumber: vehicle?.plateNumber || "",
     model: vehicle?.model || "",
     seatCount: vehicle?.seatCount || 4,
-    tripType: vehicle?.tripType || "",
+    tripType: vehicle?.tripType || [],
     color: vehicle?.color || "",
     windowType: vehicle?.windowType || "GLASS",
     sunroof: vehicle?.sunroof || false,
@@ -59,13 +59,19 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
       return;
     }
 
+    // Validate images for new vehicles
+    if (!vehicle && formData.images.length === 0) {
+      alert("Please upload at least 1 image of your vehicle");
+      return;
+    }
+
     setStatus("saving");
 
     const formDataObj = new FormData();
     formDataObj.append("plateNumber", formData.plateNumber);
     formDataObj.append("model", formData.model);
     formDataObj.append("seatCount", formData.seatCount.toString());
-    formDataObj.append("tripType", formData.tripType);
+    formDataObj.append("tripType", JSON.stringify(formData.tripType));
     formDataObj.append("color", formData.color);
     formDataObj.append("windowType", formData.windowType);
     formDataObj.append("sunroof", formData.sunroof.toString());
@@ -77,9 +83,18 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
       formDataObj.append("images", image);
     });
 
+    console.log("[VehicleWizard] Saving vehicle...");
+    console.log("[VehicleWizard] Is update:", !!vehicle?._id);
+    console.log("[VehicleWizard] Has token:", !!token);
+    console.log("[VehicleWizard] Plate number:", formData.plateNumber);
+    console.log("[VehicleWizard] Trip types:", formData.tripType);
+    console.log("[VehicleWizard] Images count:", formData.images.length);
+
     const result = vehicle?._id
       ? await updateVehicle(vehicle._id, formDataObj, token || undefined)
       : await createVehicle(formDataObj, token || undefined);
+    
+    console.log("[VehicleWizard] Save result:", result);
 
     if (!result.ok) {
       console.error("Failed to save vehicle:", result);
@@ -156,31 +171,41 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
         {/* Seat Count */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Seat Count (4-14)
+            Seat Count
           </label>
-          <input
-            type="number"
-            min={4}
-            max={14}
+          <select
             value={formData.seatCount}
-            onChange={(e) => setFormData(prev => ({ ...prev, seatCount: parseInt(e.target.value) || 4 }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, seatCount: parseInt(e.target.value) }))}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
+          >
+            {[4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((num) => (
+              <option key={num} value={num}>
+                {num} seats
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Trip Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Trip Type
+            Trip Type (Select one or more)
           </label>
           <div className="flex flex-wrap gap-2">
             {TRIP_TYPES.map((type) => (
               <button
                 key={type}
                 type="button"
-                onClick={() => setFormData(prev => ({ ...prev, tripType: type }))}
+                onClick={() => {
+                  setFormData(prev => ({
+                    ...prev,
+                    tripType: prev.tripType.includes(type)
+                      ? prev.tripType.filter(t => t !== type)
+                      : [...prev.tripType, type]
+                  }));
+                }}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                  formData.tripType === type
+                  formData.tripType.includes(type)
                     ? "bg-green-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
@@ -196,7 +221,7 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Color
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-3">
             {COLORS.map((color) => (
               <button
                 key={color}
@@ -211,6 +236,18 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
                 {color}
               </button>
             ))}
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-2">
+              Or specify custom color
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., Navy Blue, Pearl White..."
+              value={!COLORS.includes(formData.color) ? formData.color : ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+            />
           </div>
         </div>
 
@@ -320,7 +357,7 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
         {/* Images */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Vehicle Images (1-5 images)
+            Vehicle Images (1-5 images) *
           </label>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
             <Camera className="w-12 h-12 mx-auto text-gray-400 mb-2" />
@@ -334,9 +371,33 @@ export default function VehicleWizard({ vehicle, onSaved }: Props) {
                 className="hidden"
               />
             </label>
-            {formData.images.length > 0 && (
+            {formData.images.length > 0 ? (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-green-600 mb-2">
+                  {formData.images.length} of 5 images selected
+                </p>
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  {formData.images.map((img, idx) => (
+                    <div key={idx} className="relative aspect-video bg-gray-100 rounded overflow-hidden">
+                      <img
+                        src={URL.createObjectURL(img)}
+                        alt={`Preview ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-1 right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {idx + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : vehicle?.images && vehicle.images.length > 0 ? (
               <p className="text-sm text-gray-600 mt-2">
-                {formData.images.length} image(s) selected
+                Currently has {vehicle.images.length} image(s)
+              </p>
+            ) : (
+              <p className="text-sm text-gray-500 mt-2">
+                Upload at least 1 image of your vehicle
               </p>
             )}
           </div>

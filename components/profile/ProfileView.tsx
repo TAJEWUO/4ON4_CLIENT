@@ -3,6 +3,7 @@
 import { User, Camera, Edit, Mail, Phone, Globe, Award, Briefcase, FileText, CreditCard, Book } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import VehiclesSection from "./VehiclesSection";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -12,11 +13,11 @@ type Props = {
 };
 
 const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="flex items-start gap-3 py-3 border-b border-gray-100">
-    <div className="mt-1 text-gray-500">{icon}</div>
+  <div className="flex items-start gap-3 py-2 border-b border-gray-100">
+    <div className="mt-0.5 text-gray-400">{icon}</div>
     <div className="flex-1">
       <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-medium text-gray-900">{value || "—"}</p>
+      <p className="text-sm font-medium text-gray-700">{value || "—"}</p>
     </div>
   </div>
 );
@@ -29,13 +30,24 @@ export default function ProfileView({ profile, onEdit }: Props) {
 
   const avatarUrl = (() => {
     if (!profile) return null;
-    const pic = currentAvatar ?? profile.profilePicture ?? profile.profilePicture?.path ?? profile.avatarUrl ?? null;
+    
+    // Priority: currentAvatar (after upload) > profile.profilePicture (from API)
+    const pic = currentAvatar ?? profile.profilePicture ?? profile.avatarUrl ?? null;
     if (!pic) return null;
+    
+    // If it's already a full URL, use it directly
     if (typeof pic === "string") {
       if (pic.startsWith("http://") || pic.startsWith("https://")) return pic;
+      // Fallback for old relative paths
       return `${API_BASE}/${pic.replace(/^\/+/, "")}`;
     }
-    if (pic?.path) return `${API_BASE}/${pic.path.replace(/^\/+/, "")}`;
+    
+    // Handle object format (shouldn't happen with new backend, but keep for safety)
+    if (pic?.path) {
+      if (pic.path.startsWith("http://") || pic.path.startsWith("https://")) return pic.path;
+      return `${API_BASE}/${pic.path.replace(/^\/+/, "")}`;
+    }
+    
     return null;
   })();
 
@@ -89,7 +101,7 @@ export default function ProfileView({ profile, onEdit }: Props) {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-green-600 to-green-800 px-4 pt-8 pb-20 relative">
+      <div className="bg-gradient-to-br from-green-500 to-green-700 px-4 pt-6 pb-16 relative">
         <div className="flex flex-col items-center gap-4">
           {/* Profile Picture */}
           <div className="relative">
@@ -139,21 +151,21 @@ export default function ProfileView({ profile, onEdit }: Props) {
 
           {/* Name */}
           <div className="text-center text-white">
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-xl font-semibold">
               {profile?.firstName || "—"} {profile?.lastName || ""}
             </h1>
             {profile?.level && (
-              <p className="text-sm text-green-100 mt-1 font-medium">{profile.level} Level</p>
+              <p className="text-xs text-green-100 mt-1 font-medium">{profile.level} Level</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Content Card */}
-      <div className="mx-4 -mt-12 bg-white rounded-2xl shadow-lg p-6 space-y-6">
+      <div className="mx-4 -mt-12 bg-white rounded-2xl shadow-md p-5 space-y-5">
         {/* Contact Information */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
+          <h2 className="text-base font-semibold text-gray-800 mb-3">Contact Information</h2>
           <div className="space-y-1">
             <InfoRow icon={<Phone size={18} />} label="Phone Number" value={profile?.phoneNumber || profile?.phone} />
             <InfoRow icon={<Mail size={18} />} label="Email Address" value={profile?.email} />
@@ -162,7 +174,7 @@ export default function ProfileView({ profile, onEdit }: Props) {
 
         {/* Professional Details */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Professional Details</h2>
+          <h2 className="text-base font-semibold text-gray-800 mb-3">Professional Details</h2>
           <div className="space-y-1">
             <InfoRow 
               icon={<Globe size={18} />} 
@@ -202,6 +214,9 @@ export default function ProfileView({ profile, onEdit }: Props) {
             <p className="text-sm text-gray-700 leading-relaxed">{profile.bio}</p>
           </section>
         )}
+
+        {/* Vehicles Section */}
+        <VehiclesSection />
 
         {/* Edit Button */}
         <button
