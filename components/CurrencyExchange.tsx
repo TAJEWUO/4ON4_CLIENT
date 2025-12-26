@@ -181,46 +181,43 @@ export default function CurrencyExchange() {
   return (
     <div 
       ref={widgetRef}
-      onClick={() => setIsExpanded(true)}
-      className={`w-full bg-white rounded shadow-sm border border-gray-100 transition-all duration-500 ease-in-out cursor-pointer ${
-        isExpanded 
-          ? 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] md:w-[33%] p-6 shadow-2xl' 
-          : 'p-1.5'
+      className={`relative w-full bg-white rounded shadow-sm border border-gray-100 transition-all duration-300 ease-in-out ${
+        isExpanded ? 'shadow-xl z-40' : ''
       }`}
     >
+      {/* Main Widget Content */}
+      <div className="p-1.5">
       <div className="flex items-center justify-between mb-1">
-        <h3 className={`font-semibold text-gray-700 transition-all ${isExpanded ? 'text-base' : 'text-[10px]'}`}>
+        <h3 className="text-[10px] font-semibold text-gray-700">
           💱 Currency Exchange
         </h3>
         {lastUpdate && (
-          <span className={`text-green-600 font-medium transition-all ${isExpanded ? 'text-xs' : 'text-[8px]'}`}>
+          <span className="text-[8px] text-green-600 font-medium">
             ● LIVE
           </span>
         )}
       </div>
 
       {loading ? (
-        <div className={`text-center py-1 text-gray-500 transition-all ${isExpanded ? 'text-sm' : 'text-[9px]'}`}>
+        <div className="text-center py-1 text-[9px] text-gray-500">
           Loading live rates...
         </div>
       ) : (
-        <div className={`transition-all ${isExpanded ? 'space-y-4' : 'space-y-1.5'}`}>
+        <div className="space-y-1.5">
           {error && (
-            <div className={`text-orange-600 text-center py-0.5 transition-all ${isExpanded ? 'text-xs' : 'text-[8px]'}`}>
+            <div className="text-[8px] text-orange-600 text-center py-0.5">
               {error}
             </div>
           )}
           
           {/* Converter Card */}
-          <div className={`bg-gray-900 rounded text-white transition-all ${isExpanded ? 'p-6' : 'p-2'}`}>
+          <div className="bg-gray-900 rounded p-2 text-white">
             {/* Base Currency Selector */}
-            <div className={`transition-all ${isExpanded ? 'mb-3' : 'mb-1'}`}>
+            <div className="mb-1">
               <select
                 value={baseCurrency}
                 onChange={(e) => setBaseCurrency(e.target.value)}
-                className={`w-full px-1.5 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-1 focus:ring-green-500 transition-all ${
-                  isExpanded ? 'py-2 text-sm' : 'py-0.5 text-[9px]'
-                }`}
+                className="w-full px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-[9px] text-white focus:outline-none focus:ring-1 focus:ring-green-500"
               >
                 {CURRENCIES.map((currency) => (
                   <option key={currency.code} value={currency.code}>
@@ -230,23 +227,21 @@ export default function CurrencyExchange() {
               </select>
             </div>
 
-            <div className={`flex items-center justify-between transition-all ${isExpanded ? 'mb-4' : 'mb-1.5'}`}>
-              <div className={`font-bold transition-all ${isExpanded ? 'text-lg' : 'text-xs'}`}>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="text-xs font-bold">
                 {baseCurrency} {getFlag(baseCurrency)}
               </div>
-              <div className={`font-bold transition-all ${isExpanded ? 'text-3xl' : 'text-xl'}`}>
+              <div className="text-xl font-bold">
                 {convertedAmount}
               </div>
             </div>
 
             {/* Foreign Currency Dropdown */}
-            <div className={`transition-all ${isExpanded ? 'mb-3' : 'mb-1'}`}>
+            <div className="mb-1">
               <select
                 value={foreignCurrency}
                 onChange={(e) => setForeignCurrency(e.target.value)}
-                className={`w-full px-1.5 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-1 focus:ring-green-500 transition-all ${
-                  isExpanded ? 'py-2 text-sm' : 'py-0.5 text-[9px]'
-                }`}
+                className="w-full px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-[9px] text-white focus:outline-none focus:ring-1 focus:ring-green-500"
               >
                 {CURRENCIES.filter((c) => c.code !== baseCurrency).map(
                   (currency) => (
@@ -264,13 +259,11 @@ export default function CurrencyExchange() {
               value={foreignAmount}
               onChange={(e) => setForeignAmount(e.target.value)}
               placeholder="Enter amount"
-              className={`w-full px-1.5 bg-white text-gray-900 rounded focus:outline-none focus:ring-1 focus:ring-green-500 transition-all ${
-                isExpanded ? 'py-3 text-base' : 'py-1 text-[10px]'
-              }`}
+              className="w-full px-1.5 py-1 bg-white text-gray-900 text-[10px] rounded focus:outline-none focus:ring-1 focus:ring-green-500"
             />
 
             {/* Conversion Display */}
-            <div className={`mt-1 text-green-400 font-medium text-center transition-all ${isExpanded ? 'text-sm mt-3' : 'text-[9px]'}`}>
+            <div className="mt-1 text-green-400 text-[9px] font-medium text-center">
               {foreignAmount
                 ? `${foreignAmount} ${foreignCurrency} ${getFlag(foreignCurrency)} = ${convertedAmount} ${baseCurrency} ${getFlag(baseCurrency)}`
                 : "Enter amount to convert"}
@@ -278,73 +271,148 @@ export default function CurrencyExchange() {
           </div>
 
           {/* Exchange Rate Info */}
-          <div className={`text-gray-500 text-center transition-all ${isExpanded ? 'text-sm' : 'text-[9px]'}`}>
+          <div className="text-[9px] text-gray-500 text-center">
             1 {foreignCurrency} {getFlag(foreignCurrency)} = {rates[foreignCurrency] ? (1 / rates[foreignCurrency]).toFixed(4) : "N/A"}{" "}
             {baseCurrency} {getFlag(baseCurrency)}
             {lastUpdate && (
-              <div className={`text-gray-400 mt-0.5 transition-all ${isExpanded ? 'text-xs' : 'text-[8px]'}`}>
+              <div className="text-[8px] text-gray-400 mt-0.5">
                 Updated: {lastUpdate.toLocaleTimeString()}
               </div>
             )}
           </div>
+        </div>
+      )}
+      </div>
 
-          {/* Expanded View - Historical Rates & Bureau Finder */}
-          {isExpanded && historicalRates && (
-            <div className="space-y-3 border-t border-gray-200 pt-3">
-              {/* Bureau Finder Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(`https://www.google.com/maps/search/currency+exchange+bureau+near+me`, '_blank');
-                }}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition-all text-xs"
-              >
-                🏦 FIND SUITABLE EXCHANGE BUREAU NEAR YOU
-              </button>
+      {/* Bottom Button - Always Visible */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsExpanded(!isExpanded);
+        }}
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-1.5 text-[10px] rounded-b transition-all"
+      >
+        TODAY'S EXCHANGE BUREAUS RATES
+      </button>
 
-              {/* Rate Comparison */}
-              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-600">Yesterday's Rate:</span>
-                  <span className="font-semibold text-gray-800">
-                    {historicalRates.yesterdayRate.toFixed(4)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-600">Today's Rate:</span>
-                  <span className={`font-semibold ${
-                    historicalRates.rateChange > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {historicalRates.todayRate.toFixed(4)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center text-xs border-t border-gray-200 pt-2">
-                  <span className="text-gray-600">Change:</span>
-                  <span className={`font-bold ${
-                    historicalRates.rateChange > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {historicalRates.rateChange > 0 ? '▲' : '▼'} {Math.abs(historicalRates.rateChange).toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-              
-              <div className="text-[10px] text-gray-400 text-center">
-                Rates update daily at 5:00 PM EAT
-              </div>
+      {/* Expanded Details - Slides Up Above Widget */}
+      {isExpanded && historicalRates && (
+        <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-xl p-3 space-y-2 z-50 animate-slideUp">
+          {/* Rate Comparison */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 space-y-2 border border-gray-200">
+            <h4 className="text-xs font-bold text-gray-800 text-center border-b border-gray-300 pb-1">
+              Rate Comparison
+            </h4>
+            
+            <div className="flex justify-between items-center text-[10px]">
+              <span className="text-gray-600 font-medium">Yesterday:</span>
+              <span className="font-bold text-gray-800">
+                {historicalRates.yesterdayRate.toFixed(4)}
+              </span>
             </div>
-          )}
+            
+            <div className="flex justify-between items-center text-[10px]">
+              <span className="text-gray-600 font-medium">Today:</span>
+              <span className={`font-bold ${
+                historicalRates.rateChange > 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {historicalRates.todayRate.toFixed(4)}
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center text-[10px] border-t border-gray-300 pt-1">
+              <span className="text-gray-600 font-medium">Change:</span>
+              <span className={`font-bold ${
+                historicalRates.rateChange > 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {historicalRates.rateChange > 0 ? '▲' : '▼'} {Math.abs(historicalRates.rateChange).toFixed(2)}%
+              </span>
+            </div>
+          </div>
+          
+          {/* Bureau Finder */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(`https://www.google.com/maps/search/currency+exchange+bureau+near+me`, '_blank');
+            }}
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-3 rounded-lg shadow transition-all text-[10px]"
+          >
+            🏦 FIND EXCHANGE BUREAU NEAR YOU
+          </button>
+          
+          <div className="text-[8px] text-gray-400 text-center">
+            Rates update daily at 5:00 PM EAT
+          </div>
+        </div>
+      )}
+      {/* Expanded Details - Slides Up Above Widget */}
+      {isExpanded && historicalRates && (
+        <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-xl p-3 space-y-2 z-50 animate-slideUp">
+          {/* Rate Comparison */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 space-y-2 border border-gray-200">
+            <h4 className="text-xs font-bold text-gray-800 text-center border-b border-gray-300 pb-1">
+              Rate Comparison
+            </h4>
+            
+            <div className="flex justify-between items-center text-[10px]">
+              <span className="text-gray-600 font-medium">Yesterday:</span>
+              <span className="font-bold text-gray-800">
+                {historicalRates.yesterdayRate.toFixed(4)}
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center text-[10px]">
+              <span className="text-gray-600 font-medium">Today:</span>
+              <span className={`font-bold ${
+                historicalRates.rateChange > 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {historicalRates.todayRate.toFixed(4)}
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center text-[10px] border-t border-gray-300 pt-1">
+              <span className="text-gray-600 font-medium">Change:</span>
+              <span className={`font-bold ${
+                historicalRates.rateChange > 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {historicalRates.rateChange > 0 ? '▲' : '▼'} {Math.abs(historicalRates.rateChange).toFixed(2)}%
+              </span>
+            </div>
+          </div>
+          
+          {/* Bureau Finder */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(`https://www.google.com/maps/search/currency+exchange+bureau+near+me`, '_blank');
+            }}
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-3 rounded-lg shadow transition-all text-[10px]"
+          >
+            🏦 FIND EXCHANGE BUREAU NEAR YOU
+          </button>
+          
+          <div className="text-[8px] text-gray-400 text-center">
+            Rates update daily at 5:00 PM EAT
+          </div>
         </div>
       )}
       
-      {/* Backdrop when expanded */}
-      {isExpanded && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-40 z-40"
-          onClick={() => setIsExpanded(false)}
-        />
-      )}
+      <style jsx>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slideUp {
+          animation: slideUp 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
