@@ -255,16 +255,20 @@ export default function VehicleDetailPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setEditing(true)}
-              className="p-3 bg-green-600 text-white rounded-full hover:bg-green-700"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              title="Edit vehicle details"
             >
-              <Edit2 size={20} />
+              <Edit2 size={18} />
+              <span className="text-sm font-medium">Edit</span>
             </button>
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="p-3 bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
+              title="Delete vehicle"
             >
-              {deleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
+              {deleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+              <span className="text-sm font-medium">{deleting ? "Deleting..." : "Delete"}</span>
             </button>
           </div>
         </div>

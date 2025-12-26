@@ -52,6 +52,12 @@ export default function LoginForm() {
     if (data?.token && data?.user?.id) {
       console.log("[LOGIN FORM] Saving token to AuthContext");
       setAuth(data.token, data.user.id);
+      
+      // Store refresh token if provided
+      if (data.refreshToken) {
+        localStorage.setItem("fouron4_refresh", data.refreshToken);
+        console.log("[LOGIN FORM] Stored refresh token");
+      }
     }
 
     console.log("[LOGIN FORM] Redirecting to /user/app");

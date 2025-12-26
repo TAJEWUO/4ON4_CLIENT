@@ -19,7 +19,6 @@ export default function VehiclesPage() {
 
   const loadVehicles = async () => {
     if (!userId || !token) {
-      console.log("No userId or token, redirecting to login");
       router.push("/user/auth/login");
       return;
     }
@@ -27,17 +26,8 @@ export default function VehiclesPage() {
     setLoading(true);
     const result = await getVehicles(userId, token);
     
-    console.log("Vehicles API result:", result);
     if (result.ok && result.data) {
-      const vehiclesList = result.data.vehicles || [];
-      console.log("Loaded vehicles:", vehiclesList);
-      if (vehiclesList.length > 0) {
-        console.log("First vehicle:", vehiclesList[0]);
-        console.log("First vehicle images array:", vehiclesList[0]?.images);
-        console.log("First vehicle first image:", vehiclesList[0]?.images?.[0]);
-        console.log("Type of first image:", typeof vehiclesList[0]?.images?.[0]);
-      }
-      setVehicles(vehiclesList);
+      setVehicles(result.data.vehicles || []);
     } else {
       console.error("Failed to load vehicles:", result);
     }
@@ -108,12 +98,10 @@ export default function VehiclesPage() {
                       alt={vehicle.plateNumber}
                       className="w-full h-full object-cover"
                       onLoad={(e) => {
-                        // Hide placeholder when image loads successfully
-                        const placeholder = e.currentTarget.nextElementSibling;
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
                         if (placeholder) placeholder.style.display = 'none';
                       }}
                       onError={(e) => {
-                        console.error("Failed to load vehicle image:", vehicle.images[0]);
                         e.currentTarget.style.display = 'none';
                       }}
                     />

@@ -9,35 +9,26 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
  * Handles: full URLs, relative paths, object with path property
  */
 export function getImageUrl(image: string | { path: string } | null | undefined): string | null {
-  if (!image) {
-    console.log("[getImageUrl] No image provided");
-    return null;
-  }
+  if (!image) return null;
 
   let path: string;
 
   // Handle object format
   if (typeof image === "object" && image.path) {
     path = image.path;
-    console.log("[getImageUrl] Object format, path:", path);
   } else if (typeof image === "string") {
     path = image;
-    console.log("[getImageUrl] String format, path:", path);
   } else {
-    console.log("[getImageUrl] Unknown format:", typeof image, image);
     return null;
   }
 
   // Already a full URL
   if (path.startsWith("http://") || path.startsWith("https://")) {
-    console.log("[getImageUrl] Already full URL:", path);
     return path;
   }
 
   // Convert relative path to full URL
-  const fullUrl = `${API_BASE}/${path.replace(/^\/+/, "")}`;
-  console.log("[getImageUrl] Converted to full URL:", fullUrl);
-  return fullUrl;
+  return `${API_BASE}/${path.replace(/^\/+/, "")}`;
 }
 
 /**
