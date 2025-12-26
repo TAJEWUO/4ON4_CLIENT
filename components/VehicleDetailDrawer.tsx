@@ -215,6 +215,13 @@ export default function VehicleDetailDrawer({
                 </div>
               </div>
             )}
+
+            {/* Connect Button */}
+            <div className="flex justify-center mt-6">
+              <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
+                Connect
+              </button>
+            </div>
           </div>
         </div>
       </div>

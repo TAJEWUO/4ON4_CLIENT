@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getAllVehicles } from "@/services/vehicle.service";
 import { getImageUrl } from "@/lib/utils/imageUtils";
 import { Car, ChevronRight } from "lucide-react";
@@ -25,6 +25,8 @@ export default function VehicleShowcase() {
   const [loading, setLoading] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     loadVehicles();
@@ -40,15 +42,62 @@ export default function VehicleShowcase() {
     setLoading(false);
   };
 
+  // Shuffle vehicles every 2-3 seconds
+  useEffect(() => {
+    if (vehicles.length === 0 || isPaused) return;
+
+    const shuffleInterval = setInterval(() => {
+      setVehicles(prev => {
+        const shuffled = [...prev];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      });
+    }, 2500);
+
+    return () => clearInterval(shuffleInterval);
+  }, [vehicles.length, isPaused]);
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (!scrollContainerRef.current || vehicles.length === 0 || isPaused) return;
+
+    const container = scrollContainerRef.current;
+    let scrollPosition = 0;
+    const scrollSpeed = 1;
+    
+    const scroll = () => {
+      if (!container) return;
+      
+      scrollPosition += scrollSpeed;
+      
+      if (scrollPosition >= container.scrollWidth / 2) {
+        scrollPosition = 0;
+      }
+      
+      container.scrollLeft = scrollPosition;
+    };
+
+    const scrollInterval = setInterval(scroll, 30);
+
+    return () => clearInterval(scrollInterval);
+  }, [vehicles.length, isPaused]);
+
   const handleVehicleClick = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     setIsDrawerOpen(true);
+    setIsPaused(true);
   };
 
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false);
+    setIsPaused(false);
     setTimeout(() => setSelectedVehicle(null), 300);
   };
+
+  const infiniteVehicles = vehicles.length > 0 ? [...vehicles, ...vehicles] : [];
 
   if (loading) {
     return (
@@ -82,31 +131,31 @@ export default function VehicleShowcase() {
   return (
     <>
       <div className="w-full relative">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4 px-6">
+        <div className="flex items-center justify-center mb-4 px-6">
           <h2 className="text-lg md:text-xl font-bold text-gray-900">
-            Available Vehicles
+            4ON4 CERTIFIED TOUR VEHICLES, OPEN TO <span className="text-green-600">CONNECT</span>
           </h2>
-          <span className="text-sm font-medium text-gray-600">{vehicles.length} cars</span>
         </div>
 
-        {/* Floating scrollable container with edge fade effect */}
-        <div className="relative">
-          {/* Left fade gradient */}
+        <div 
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
           <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-          
-          {/* Right fade gradient */}
           <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
           
-          {/* Scrollable cards */}
-          <div className="flex gap-4 overflow-x-auto pb-4 px-6 scrollbar-hide snap-x snap-mandatory">
-            {vehicles.map((vehicle) => (
+          <div 
+            ref={scrollContainerRef}
+            className="flex gap-4 overflow-x-auto pb-4 px-6 scrollbar-hide"
+            style={{ scrollBehavior: 'auto' }}
+          >
+            {infiniteVehicles.map((vehicle, index) => (
               <div
-                key={vehicle._id}
+                key={`${vehicle._id}-${index}`}
                 onClick={() => handleVehicleClick(vehicle)}
-                className="flex-shrink-0 w-40 md:w-48 snap-center bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden transform hover:scale-105"
+                className="flex-shrink-0 w-40 md:w-48 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden transform hover:scale-105"
               >
-                {/* Vehicle Image */}
                 <div className="relative w-full h-36 md:h-40 bg-gradient-to-br from-gray-100 to-gray-200">
                   {vehicle.images?.[0] ? (
                     <img
@@ -122,17 +171,15 @@ export default function VehicleShowcase() {
                       <Car className="w-12 h-12 text-gray-400" />
                     </div>
                   )}
-                  {/* Subtle overlay gradient */}
                   <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
 
-                {/* Vehicle Info */}
                 <div className="p-3">
                   <p className="text-sm font-bold text-gray-900 truncate">
                     {vehicle.plateNumber}
                   </p>
-                  {vehicle.model && (
-                    <p className="text-xs text-gray-600 truncate mt-0.5">{vehicle.model}</p>
+                  {vehicle.color && (
+                    <p className="text-xs text-gray-600 truncate mt-0.5 capitalize">{vehicle.color.toLowerCase()}</p>
                   )}
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-xs font-medium text-gray-700">
@@ -141,13 +188,12 @@ export default function VehicleShowcase() {
                     <ChevronRight className="w-4 h-4 text-gray-500" />
                   </div>
                 </div>
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Vehicle Detail Drawer */}
       {selectedVehicle && (
         <VehicleDetailDrawer
           vehicle={selectedVehicle}
