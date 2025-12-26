@@ -2,6 +2,7 @@
 
 import CurrencyExchange from "@/components/CurrencyExchange";
 import VehicleShowcase from "@/components/VehicleShowcase";
+import MiniAgencyProgram from "@/components/MiniAgencyProgram";
 
 export default function Page() {
   return (
@@ -12,6 +13,9 @@ export default function Page() {
 
         {/* Vehicle Showcase Widget */}
         <VehicleShowcase />
+
+        {/* Mini Agency Program - Tour Guides Registration */}
+        <MiniAgencyProgram />
 
         {/* Rest of your page content goes here */}
         <div className="mt-8">
