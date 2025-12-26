@@ -27,7 +27,32 @@ export default function VehiclesPage() {
     const result = await getVehicles(userId, token);
     
     if (result.ok && result.data) {
-      setVehicles(result.data.vehicles || []);
+      const vehicles = result.data.vehicles || [];
+      console.log("═══════════════════════════════════════════════");
+      console.log(`[VEHICLES PAGE] User: ${userId}`);
+      console.log(`[VEHICLES PAGE] Total Vehicles Found: ${vehicles.length}`);
+      console.log("═══════════════════════════════════════════════");
+      
+      vehicles.forEach((v, idx) => {
+        const isCloudinary = v.images?.[0]?.startsWith('http');
+        console.log(`\n🚗 VEHICLE #${idx + 1} (Separate Entity)`);
+        console.log(`   ID: ${v._id}`);
+        console.log(`   Plate: ${v.plateNumber}`);
+        console.log(`   Model: ${v.model || 'N/A'}`);
+        console.log(`   Owner: ${v.userId}`);
+        console.log(`   Storage: ${isCloudinary ? '☁️ CLOUDINARY (Permanent)' : '💾 LOCAL (Will be deleted on Render)'}`);
+        console.log(`   Images:`, {
+          count: v.images?.length || 0,
+          type: typeof v.images,
+          isArray: Array.isArray(v.images),
+          data: v.images
+        });
+        console.log(`   First Image URL: ${v.images?.[0] || 'NO IMAGE'}`);
+        console.log(`   Second Image URL: ${v.images?.[1] || 'NO IMAGE'}`);
+        console.log("   ─────────────────────────────────────────");
+      });
+      
+      setVehicles(vehicles);
     } else {
       console.error("Failed to load vehicles:", result);
     }

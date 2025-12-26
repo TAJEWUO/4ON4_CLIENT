@@ -152,9 +152,18 @@ export async function apiPut(endpoint: string, body: any, token?: string) {
 /**
  * DELETE request with automatic token refresh
  */
-export async function apiDelete(endpoint: string, token?: string) {
+export async function apiDelete(endpoint: string, body?: any, token?: string) {
   try {
-    const response = await apiFetch(endpoint, { method: "DELETE" }, token);
+    const options: FetchOptions = {
+      method: "DELETE",
+    };
+
+    if (body) {
+      options.headers = { "Content-Type": "application/json" };
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await apiFetch(endpoint, options, token);
     const data = await response.json();
     // Backend already returns { ok, data } or { ok, message }, so return as-is
     return data;
