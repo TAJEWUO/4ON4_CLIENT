@@ -131,10 +131,16 @@ export default function VehicleShowcase() {
   return (
     <>
       <div className="w-full relative">
-        <div className="flex items-center justify-center mb-4 px-6">
+        <div className="flex items-center justify-between mb-4 px-6">
           <h2 className="text-lg md:text-xl font-bold text-gray-900">
             4ON4 CERTIFIED TOUR VEHICLES, OPEN TO <span className="text-green-600">CONNECT</span>
           </h2>
+          <a
+            href="/user/app/vehicles/explore"
+            className="text-sm font-semibold text-green-600 hover:text-green-700 underline whitespace-nowrap"
+          >
+            EXPLORE MORE
+          </a>
         </div>
 
         <div 

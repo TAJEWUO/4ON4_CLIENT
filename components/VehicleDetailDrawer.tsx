@@ -44,80 +44,76 @@ export default function VehicleDetailDrawer({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Full Page Modal */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-60 z-40 transition-opacity flex items-center justify-center p-4"
-        onClick={onClose}
+        className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        {/* Centered Drawer */}
-        <div
-          className={`relative w-full max-w-2xl max-h-[85vh] bg-white rounded-3xl shadow-2xl transform transition-all duration-300 ${
-            isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
-          }`}
-          onClick={(e) => e.stopPropagation()}
+        {/* Close button - Top Right */}
+        <button
+          onClick={onClose}
+          className="fixed top-4 right-4 z-10 p-3 bg-gray-100 hover:bg-gray-200 rounded-full transition shadow-lg"
         >
-          {/* Header with close button */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 rounded-t-3xl p-4 flex items-center justify-between z-10">
-            <h2 className="text-xl font-bold text-gray-900">Vehicle Details</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition"
-            >
-              <X className="w-6 h-6 text-gray-600" />
-            </button>
+          <X className="w-6 h-6 text-gray-700" />
+        </button>
+
+        {/* Content */}
+        <div className="overflow-y-auto h-full pb-6">
+          {/* Header Section */}
+          <div className="bg-gradient-to-b from-gray-50 to-white p-6 md:p-8 border-b border-gray-200">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              {vehicle.plateNumber}
+            </h1>
+            {vehicle.model && (
+              <p className="text-xl text-gray-600">{vehicle.model}</p>
+            )}
           </div>
 
-          {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(85vh-5rem)] pb-6">
-          {/* Vehicle Image */}
-          <div className="relative w-full h-64 md:h-80 bg-gray-100">
+          {/* Main Image - Contained, not stretched */}
+          <div className="relative w-full bg-gray-900 flex items-center justify-center" style={{ minHeight: '400px', maxHeight: '60vh' }}>
             {vehicle.images?.[0] ? (
               <img
                 src={getImageUrl(vehicle.images[0]) || ""}
                 alt={vehicle.plateNumber}
-                className="w-full h-full object-cover"
+                className="max-w-full max-h-full object-contain"
+                style={{ maxHeight: '60vh' }}
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="w-full h-64 flex items-center justify-center">
                 <Car className="w-20 h-20 text-gray-400" />
               </div>
             )}
           </div>
 
           {/* Vehicle Details */}
-          <div className="p-6 space-y-6">
-            {/* Plate Number & Model */}
+          <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8">
+            {/* Key Specifications */}
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">{vehicle.plateNumber}</h3>
-              {vehicle.model && (
-                <p className="text-lg text-gray-600 mt-1">{vehicle.model}</p>
-              )}
-            </div>
-
-            {/* Basic Info Grid */}
-            <div className="grid grid-cols-2 gap-4">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Key Specifications</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {/* Seat Count */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-gray-600 mb-1">
-                  <Users className="w-4 h-4" />
-                  <span className="text-sm">Seats</span>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200">
+                <div className="flex items-center gap-2 text-blue-700 mb-2">
+                  <Users className="w-5 h-5" />
+                  <span className="text-sm font-medium">Capacity</span>
                 </div>
-                <p className="text-lg font-semibold text-gray-900">
-                  {vehicle.seatCount || 4}
+                <p className="text-2xl font-bold text-blue-900">
+                  {vehicle.seatCount || 4} Seats
                 </p>
               </div>
 
               {/* Color */}
               {vehicle.color && (
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 text-gray-600 mb-1">
-                    <Palette className="w-4 h-4" />
-                    <span className="text-sm">Color</span>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border border-purple-200">
+                  <div className="flex items-center gap-2 text-purple-700 mb-2">
+                    <Palette className="w-5 h-5" />
+                    <span className="text-sm font-medium">Color</span>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900 capitalize">
+                  <p className="text-2xl font-bold text-purple-900 capitalize">
                     {vehicle.color.toLowerCase()}
                   </p>
                 </div>
@@ -125,32 +121,33 @@ export default function VehicleDetailDrawer({
 
               {/* Window Type */}
               {vehicle.windowType && (
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 text-gray-600 mb-1">
-                    <Square className="w-4 h-4" />
-                    <span className="text-sm">Windows</span>
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                  <div className="flex items-center gap-2 text-gray-700 mb-2">
+                    <Square className="w-5 h-5" />
+                    <span className="text-sm font-medium">Windows</span>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900 capitalize">
+                  <p className="text-2xl font-bold text-gray-900 capitalize">
                     {vehicle.windowType.toLowerCase()}
                   </p>
                 </div>
               )}
             </div>
+            </div>
 
             {/* Features */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Features</h4>
-              <div className="flex flex-wrap gap-2">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Special Features</h2>
+              <div className="flex flex-wrap gap-3">
                 {vehicle.sunroof && (
-                  <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg">
-                    <Sun className="w-4 h-4" />
-                    <span className="text-sm font-medium">Sunroof</span>
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 text-orange-700 px-4 py-3 rounded-lg border border-orange-200 shadow-sm">
+                    <Sun className="w-5 h-5" />
+                    <span className="font-semibold">Sunroof</span>
                   </div>
                 )}
                 {vehicle.fourByFour && (
-                  <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-lg">
-                    <Mountain className="w-4 h-4" />
-                    <span className="text-sm font-medium">4x4</span>
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 px-4 py-3 rounded-lg border border-green-200 shadow-sm">
+                    <Mountain className="w-5 h-5" />
+                    <span className="font-semibold">4x4 Capability</span>
                   </div>
                 )}
               </div>
@@ -159,17 +156,17 @@ export default function VehicleDetailDrawer({
             {/* Trip Types */}
             {vehicle.tripType && vehicle.tripType.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                  Available for
-                </h4>
-                <div className="flex flex-wrap gap-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Available Trip Types
+                </h2>
+                <div className="flex flex-wrap gap-3">
                   {vehicle.tripType.map((type, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 bg-purple-50 text-purple-700 px-3 py-2 rounded-lg"
+                      className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 px-4 py-3 rounded-lg border border-indigo-200 shadow-sm"
                     >
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm font-medium capitalize">
+                      <MapPin className="w-5 h-5" />
+                      <span className="font-semibold capitalize">
                         {type.toLowerCase()}
                       </span>
                     </div>
@@ -181,31 +178,33 @@ export default function VehicleDetailDrawer({
             {/* Additional Features */}
             {vehicle.additionalFeatures && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                  Additional Features
-                </h4>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {vehicle.additionalFeatures}
-                </p>
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  Additional Information
+                </h2>
+                <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                  <p className="text-gray-700 leading-relaxed">
+                    {vehicle.additionalFeatures}
+                  </p>
+                </div>
               </div>
             )}
 
             {/* Additional Images */}
             {vehicle.images && vehicle.images.length > 1 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                  More Photos
-                </h4>
-                <div className="grid grid-cols-3 gap-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Gallery
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {vehicle.images.slice(1).map((image, index) => (
                     <div
                       key={index}
-                      className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden"
+                      className="relative aspect-square bg-gray-900 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-green-500 transition-all duration-200 cursor-pointer group"
                     >
                       <img
                         src={getImageUrl(image) || ""}
                         alt={`${vehicle.plateNumber} - ${index + 2}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
@@ -217,14 +216,13 @@ export default function VehicleDetailDrawer({
             )}
 
             {/* Connect Button */}
-            <div className="flex justify-center mt-6">
-              <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
-                Connect
+            <div className="flex justify-center pt-4 pb-8">
+              <button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-12 rounded-2xl shadow-xl transition-all duration-200 transform hover:scale-105 hover:shadow-2xl">
+                <span className="text-lg">Connect with Driver</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </>
   );
