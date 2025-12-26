@@ -9,26 +9,40 @@ export default function RequireAuth({
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = useAuth();
+  const { userId, isInitialized } = useAuth();
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Wait a tick to avoid SSR/hydration issues
-    setIsReady(true);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (isReady && !userId) {
+    // Only check auth after component is mounted and auth is initialized
+    if (!mounted || !isInitialized) return;
+    
+    if (!userId) {
       console.log("[RequireAuth] No userId, redirecting to login");
       router.replace("/user/auth/login");
-    } else if (isReady && userId) {
+    } else {
       console.log("[RequireAuth] User authenticated:", userId);
     }
-  }, [isReady, userId, router]);
+  }, [mounted, isInitialized, userId, router]);
 
-  // Show nothing until ready and authenticated
-  if (!isReady || !userId) return null;
+  // Show loading until auth context is initialized
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl font-bold mb-2">4ON4</div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show nothing if not authenticated (will redirect)
+  if (!userId) return null;
 
   return <>{children}</>;
 }

@@ -4,10 +4,18 @@
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/utils/apiClient";
 
 /**
+ * Get all vehicles from all users (public, no auth required)
+ */
+export async function getAllVehicles(limit?: number) {
+  const endpoint = limit ? `/api/vehicle/all?limit=${limit}` : "/api/vehicle/all";
+  return apiGet(endpoint);
+}
+
+/**
  * Get all vehicles for a specific user by userId
  */
 export async function getVehicles(userId: string, token?: string) {
-  return apiGet(`/api/vehicle/${userId}`, token);
+  return apiGet(`/api/vehicle/user/${userId}`, token);
 }
 
 /**

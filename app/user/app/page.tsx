@@ -1,15 +1,17 @@
 "use client";
 
 import CurrencyExchange from "@/components/CurrencyExchange";
+import VehicleShowcase from "@/components/VehicleShowcase";
 
 export default function Page() {
   return (
     <main className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Currency Exchange - Takes up 1/3 of page height */}
-        <div className="mb-8">
-          <CurrencyExchange />
-        </div>
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Currency Exchange */}
+        <CurrencyExchange />
+
+        {/* Vehicle Showcase Widget */}
+        <VehicleShowcase />
 
         {/* Rest of your page content goes here */}
         <div className="mt-8">

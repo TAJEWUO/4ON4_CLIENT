@@ -6,6 +6,7 @@ import { refreshToken as refreshTokenAPI } from "@/lib/auth-api";
 type AuthContextType = {
   token: string | null;
   userId: string | null;
+  isInitialized: boolean;
   setAuth: (token: string, userId: string) => void;
   clearAuth: () => void;
   refreshAccessToken: () => Promise<boolean>;
@@ -14,6 +15,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   token: null,
   userId: null,
+  isInitialized: false,
   setAuth: () => {},
   clearAuth: () => {},
   refreshAccessToken: async () => false,
@@ -22,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize from localStorage on mount
   useEffect(() => {
@@ -33,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(storedToken);
       setUserId(storedUserId);
     }
+    setIsInitialized(true);
   }, []);
 
   // Listen for token refresh events from apiClient
@@ -60,12 +64,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("[AuthContext] Setting auth - userId:", newUserId);
     console.log("[AuthContext] Setting auth - token:", newToken ? "Present" : "None");
     
-    // Save to both state and localStorage
+    // Save to localStorage FIRST (synchronous)
     localStorage.setItem("fouron4_access", newToken);
     localStorage.setItem("fouron4_user_id", newUserId);
     
+    // Then update state (triggers re-render)
     setToken(newToken);
     setUserId(newUserId);
+    
+    // Ensure initialized flag is set
+    setIsInitialized(true);
   };
 
   const clearAuth = () => {
@@ -105,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, userId, setAuth, clearAuth, refreshAccessToken }}>
+    <AuthContext.Provider value={{ token, userId, isInitialized, setAuth, clearAuth, refreshAccessToken }}>
       {children}
     </AuthContext.Provider>
   );
